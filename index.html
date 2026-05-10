@@ -766,123 +766,60 @@ tbody tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-/* ═══════════════════════════════════
-   모바일 탭 전환
-═══════════════════════════════════ */
-var MOB_TABS = ['input','dashboard','history'];
-function isMobile(){ return window.innerWidth <= 768; }
-
-function mobGo(tab){
-  if(!isMobile()) return;
-  // 패널 전환
-  document.querySelector('.left').classList.remove('mob-active');
-  document.querySelector('.right').classList.remove('mob-active');
-  if(tab==='input'){
-    document.querySelector('.left').classList.add('mob-active');
-  } else {
-    document.querySelector('.right').classList.add('mob-active');
-    // 대시보드/기록 내부 탭
-    var pages=document.querySelectorAll('.rpage'), rtabs=document.querySelectorAll('.rtab');
-    for(var i=0;i<pages.length;i++) pages[i].classList.remove('on');
-    for(var j=0;j<rtabs.length;j++) rtabs[j].classList.remove('on');
-    var targetId = tab==='history' ? 'r-history' : 'r-dashboard';
-    var targetP = document.getElementById(targetId);
-    if(targetP) targetP.classList.add('on');
-    if(tab==='history') renderHist();
-    else renderDash();
-  }
-  // 바텀 탭 활성
-  var mtabs = document.querySelectorAll('.mob-tab');
-  var order = ['input','dashboard','history','settings'];
-  for(var k=0;k<mtabs.length;k++) mtabs[k].classList.remove('on');
-  var tidx = order.indexOf(tab);
-  if(tidx>=0) mtabs[tidx].classList.add('on');
-  // 스크롤 상단
-  window.scrollTo(0,0);
-}
-
-function initResponsive(){
-  if(isMobile()){
-    // 모바일: 입력 탭 먼저
-    mobGo('input');
-  } else {
-    // PC: 기존 방식
-    document.querySelector('.left').classList.remove('mob-active');
-    document.querySelector('.right').classList.remove('mob-active');
-  }
-}
-
-window.addEventListener('resize', function(){
-  if(!isMobile()){
-    // PC 크기로 돌아오면 강제 노출
-    document.querySelector('.left').classList.remove('mob-active');
-    document.querySelector('.right').classList.remove('mob-active');
-  } else {
-    initResponsive();
-  }
-});
-var N=12;
-var DNAMES=['거래 1 (6426-8231)','거래 2 (6533-7133)','20% 1 (6475-7054)','20% 2 (6616-1707)','문자 (6475-7067)','공짜 1 (6438-2001)','공짜 2 (6533-7134)','공짜 3 (6608-4694)','토스','거래','20%','공짜'];
-var COLORS=['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fed7aa','#fdba74','#fb923c','#f97316','#60a5fa','#34d399','#6ee7b7','#a7f3d0'];
-var BROKERS=[
-  {name:'키움증권',cls:'ki',nb:'nb-ki',hcls:'hbki',indices:[0,1,2,3,4,5,6,7]},
-  {name:'토스증권',cls:'to',nb:'nb-to',hcls:'hbto',indices:[8]},
-  {name:'한국투자증권',cls:'ko',nb:'nb-ko',hcls:'hbko',indices:[9,10,11]}
+/* ═══════════════════════════
+   상수
+═══════════════════════════ */
+var N = 12;
+var DNAMES = ['거래 1 (6426-8231)','거래 2 (6533-7133)','20% 1 (6475-7054)','20% 2 (6616-1707)',
+  '문자 (6475-7067)','공짜 1 (6438-2001)','공짜 2 (6533-7134)','공짜 3 (6608-4694)',
+  '토스','거래','20%','공짜'];
+var COLORS = ['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fed7aa','#fdba74','#fb923c','#f97316',
+  '#60a5fa','#34d399','#6ee7b7','#a7f3d0'];
+var BROKERS = [
+  {name:'키움증권',cls:'ki',nb:'nb-ki',indices:[0,1,2,3,4,5,6,7]},
+  {name:'토스증권',cls:'to',nb:'nb-to',indices:[8]},
+  {name:'한국투자증권',cls:'ko',nb:'nb-ko',indices:[9,10,11]}
 ];
 
-/* ═══════════════════════════════════
-   상태
-═══════════════════════════════════ */
-var MEM = { scriptUrl:'', stockData:{}, stockNames:DNAMES.slice() };
-var selectedDate='', calYear=0, calMonth=0, dashYear=0, dashMonth=0;
-var chartTypes = { total:'line', delta:'bar' };
-var dashEntryIdx = -1;
-var _gsQ = [];
-var _gsRunning = false;
+/* ═══════════════════════════
+   상태 변수
+═══════════════════════════ */
+var MEM           = { scriptUrl:'', stockData:{}, stockNames:DNAMES.slice() };
+var selectedDate  = '';
+var calYear = 0, calMonth = 0, dashYear = 0, dashMonth = 0;
+var chartTypes    = { total:'line', delta:'bar' };
+var dashEntryIdx  = -1;
+var loanData      = {0:0, 1:0, 2:0};
+var extraData     = [];
+var showLoanExcl  = false;
+var isLightMode   = false;
+var _cbIdx        = 0;
 
-/* 대출금/추가예수금 — 로컬 저장 (날짜 무관 고정값) */
-var LOAN_KEYS = ['카카오','신한생명','하나전세'];
-var loanData  = {0:0, 1:0, 2:0};   // 카카오/신한/하나
-var extraData = [];                  // [{date,amount,source}]
-var showLoanExcl = false;
-var isLightMode  = false;
+/* ═══════════════════════════
+   저장소 유틸
+═══════════════════════════ */
+function lsGet(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 
-function loadLocalExtras() {
-  try {
-    var l = localStorage.getItem('loanData');
-    if (l) loanData = JSON.parse(l);
-    var e = localStorage.getItem('extraData');
-    if (e) extraData = JSON.parse(e);
-    var t = localStorage.getItem('themeMode');
-    if (t === 'light') { isLightMode = true; document.body.classList.add('light-mode'); }
-  } catch(e2) {}
+function loadAll(){
+  var u=lsGet('scriptUrl'); if(u) MEM.scriptUrl=u;
+  var l=lsGet('loanData');  if(l) loanData=l;
+  var e=lsGet('extraData'); if(e) extraData=e;
+  var t=lsGet('themeMode'); if(t==='light') applyTheme('light');
 }
-function saveLoanLocal() { try { localStorage.setItem('loanData', JSON.stringify(loanData)); } catch(e) {} }
-function saveExtraLocal() { try { localStorage.setItem('extraData', JSON.stringify(extraData)); } catch(e) {} }
+function saveLoanLocal()  { lsSet('loanData',loanData); }
+function saveExtraLocal() { lsSet('extraData',extraData); }
+function persistUrl(u){ MEM.scriptUrl=u; lsSet('scriptUrl',u); }
 
-function getLoanTotal() { var s=0; for(var i=0;i<3;i++) s+=Number(loanData[i])||0; return s; }
-function getExtraTotal() { var s=0; for(var i=0;i<extraData.length;i++) s+=Number(extraData[i].amount)||0; return s; }
-
-/* ── URL 저장 ── */
-function loadUrl() {
-  try { var u=localStorage.getItem('scriptUrl'); if(u) MEM.scriptUrl=u; } catch(e) {}
-  loadLocalExtras();
-}
-function persistUrl(u) {
-  MEM.scriptUrl = u;
-  try { localStorage.setItem('scriptUrl', u); } catch(e) {}
-}
-
-/* ═══════════════════════════════════
-   포맷
-═══════════════════════════════════ */
+/* ═══════════════════════════
+   포맷 유틸
+═══════════════════════════ */
 function comma(n){ if(n===''||n===null||n===undefined||isNaN(Number(n))) return '-'; return Number(n).toLocaleString('ko-KR'); }
 function fmtW(n){ var c=comma(n); return c==='-'?'-':'₩'+c; }
 function fmtD(n){ if(!n||n===0) return '-'; return (n>0?'+':'-')+'₩'+Math.abs(n).toLocaleString('ko-KR'); }
 function clsN(n){ return n>0?'up':n<0?'down':'flat'; }
 function padZ(n){ return n<10?'0'+n:String(n); }
 function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+padZ(d.getMonth()+1)+'-'+padZ(d.getDate()); }
-
 function normDate(s){
   if(!s) return '';
   s=String(s).trim();
@@ -892,292 +829,272 @@ function normDate(s){
   return '';
 }
 function fmtDate(s){
-  s=normDate(s)||String(s);
-  var p=s.split('-');
-  if(p.length===3&&p[0]&&p[1]&&p[2]) return p[0]+'년 '+p[1]+'월 '+p[2]+'일';
-  return s;
+  var n=normDate(s)||String(s);
+  var p=n.split('-');
+  return (p.length===3&&p[0]&&p[1]&&p[2])?p[0]+'년 '+p[1]+'월 '+p[2]+'일':n;
 }
 function getTotal(e){
   if(!e||!e.values) return 0;
-  var sum=0;
-  for(var i=0;i<e.values.length;i++){ var v=e.values[i]; if(v!==''&&v!==null&&v!==undefined) sum+=Number(v)||0; }
-  if(e.yesueum!==undefined&&e.yesueum!==''&&e.yesueum!==null) sum+=Number(e.yesueum)||0;
-  return sum;
+  var s=0;
+  for(var i=0;i<e.values.length;i++){ var v=e.values[i]; if(v!==''&&v!==null&&v!==undefined) s+=Number(v)||0; }
+  if(e.yesueum!==undefined&&e.yesueum!==''&&e.yesueum!==null) s+=Number(e.yesueum)||0;
+  return s;
 }
 function getYe(e){ if(!e||e.yesueum===undefined||e.yesueum===''||e.yesueum===null) return 0; return Number(e.yesueum)||0; }
+function getLoanTotal(){ var s=0; for(var i=0;i<3;i++) s+=Number(loanData[i])||0; return s; }
+function getExtraTotal(){ var s=0; for(var i=0;i<extraData.length;i++) s+=Number(extraData[i].amount)||0; return s; }
 
-/* ═══════════════════════════════════
-   UI 헬퍼
-═══════════════════════════════════ */
+/* ═══════════════════════════
+   UI 유틸
+═══════════════════════════ */
 function setDot(s,t){ document.getElementById('dot').className='dot '+s; document.getElementById('stxt').textContent=t; }
 function showLoader(t){ document.getElementById('ltxt').textContent=t||'처리 중...'; document.getElementById('loader').classList.add('on'); }
 function hideLoader(){ document.getElementById('loader').classList.remove('on'); }
+function isMobile(){ return window.innerWidth<=768; }
 
-/* ═══════════════════════════════════
-   설정
-═══════════════════════════════════ */
-function openSettings(){ document.getElementById('urlInput').value=MEM.scriptUrl; document.getElementById('merr').textContent=''; document.getElementById('overlay').classList.add('on'); }
+/* ═══════════════════════════
+   테마
+═══════════════════════════ */
+function applyTheme(mode){
+  isLightMode=(mode==='light');
+  if(isLightMode){
+    document.body.classList.add('light-mode');
+    var tb=document.getElementById('themeBtn'); if(tb) tb.textContent='☀️ 라이트';
+    var bl=document.getElementById('btnLight'); if(bl) bl.classList.add('active');
+    var bd=document.getElementById('btnDark');  if(bd) bd.classList.remove('active');
+  } else {
+    document.body.classList.remove('light-mode');
+    var tb2=document.getElementById('themeBtn'); if(tb2) tb2.textContent='🌙 다크';
+    var bl2=document.getElementById('btnLight'); if(bl2) bl2.classList.remove('active');
+    var bd2=document.getElementById('btnDark');  if(bd2) bd2.classList.add('active');
+  }
+  lsSet('themeMode',mode);
+}
+function toggleTheme(){ applyTheme(isLightMode?'dark':'light'); }
+function setTheme(mode){ applyTheme(mode); }
+
+/* ═══════════════════════════
+   설정 모달
+═══════════════════════════ */
+function openSettings(){
+  document.getElementById('urlInput').value=MEM.scriptUrl;
+  document.getElementById('merr').textContent='';
+  document.getElementById('overlay').classList.add('on');
+  /* 현재 테마 버튼 상태 반영 */
+  var bl=document.getElementById('btnLight'); if(bl) { if(isLightMode) bl.classList.add('active'); else bl.classList.remove('active'); }
+  var bd=document.getElementById('btnDark');  if(bd) { if(!isLightMode) bd.classList.add('active'); else bd.classList.remove('active'); }
+}
 function closeSettings(){ document.getElementById('overlay').classList.remove('on'); }
 function connectUrl(){
   var url=document.getElementById('urlInput').value.trim();
   if(!url){ document.getElementById('merr').textContent='URL을 입력하세요.'; return; }
   if(url.indexOf('https://script.google.com')!==0){ document.getElementById('merr').textContent='올바른 Apps Script URL이 아닙니다.'; return; }
-  persistUrl(url); closeSettings(); pullFromSheets();
+  persistUrl(url); closeSettings();
+  setDot('ing','연결 중...');
+  setTimeout(function(){ pullFromSheets(); },200);
 }
 function disconnectUrl(){
   if(!confirm('연결을 끊으시겠습니까?')) return;
-  persistUrl(''); MEM.stockData={}; setDot('','연결 안됨'); closeSettings();
+  persistUrl(''); MEM.stockData={};
+  setDot('','연결 안됨'); closeSettings();
   buildCal(); renderDash(); renderHist();
 }
 
-/* ═══════════════════════════════════
-   테마 전환
-═══════════════════════════════════ */
-function toggleTheme() { setTheme(isLightMode ? 'dark' : 'light'); }
-function setTheme(mode) {
-  isLightMode = (mode === 'light');
-  if (isLightMode) {
-    document.body.classList.add('light-mode');
-    document.getElementById('themeBtn').textContent = '☀️ 라이트';
-    if(document.getElementById('btnDark')) document.getElementById('btnDark').classList.remove('active');
-    if(document.getElementById('btnLight')) document.getElementById('btnLight').classList.add('active');
-  } else {
-    document.body.classList.remove('light-mode');
-    document.getElementById('themeBtn').textContent = '🌙 다크';
-    if(document.getElementById('btnDark')) document.getElementById('btnDark').classList.add('active');
-    if(document.getElementById('btnLight')) document.getElementById('btnLight').classList.remove('active');
-  }
-  try { localStorage.setItem('themeMode', mode); } catch(e) {}
-}
-
-/* ═══════════════════════════════════
-   대출금 / 추가예수금 입력 UI
-═══════════════════════════════════ */
-function buildLoanUI() {
-  for (var i=0;i<3;i++) {
-    var el = document.getElementById('loan'+i);
-    if (el) el.value = loanData[i] ? Number(loanData[i]).toLocaleString('ko-KR') : '';
+/* ═══════════════════════════
+   대출금 / 추가예수금 UI
+═══════════════════════════ */
+function buildLoanUI(){
+  for(var i=0;i<3;i++){
+    var el=document.getElementById('loan'+i);
+    if(el) el.value=loanData[i]?Number(loanData[i]).toLocaleString('ko-KR'):'';
   }
 }
-function saveLoan() {
-  for (var i=0;i<3;i++) {
-    var el = document.getElementById('loan'+i);
-    var v  = el ? el.value.replace(/,/g,'') : '';
-    loanData[i] = v === '' ? 0 : Number(v);
+function saveLoan(){
+  for(var i=0;i<3;i++){
+    var el=document.getElementById('loan'+i);
+    var v=el?el.value.replace(/,/g,''):'';
+    loanData[i]=v===''?0:Number(v);
   }
   saveLoanLocal();
-  var msg = document.getElementById('loanMsg');
-  msg.textContent = '✓ 대출금 저장 완료';
-  setTimeout(function(){ msg.textContent=''; }, 2000);
-  renderDash(); // 대시보드 갱신
+  var msg=document.getElementById('loanMsg');
+  msg.textContent='✓ 대출금 저장 완료';
+  setTimeout(function(){ msg.textContent=''; },2000);
+  renderDash();
 }
-
-function buildExtraUI() {
-  var c = document.getElementById('extraItems'); if (!c) return;
-  c.innerHTML = '';
-  for (var i=0;i<extraData.length;i++) {
-    (function(idx) {
-      var row = document.createElement('div');
-      row.className = 'extra-row';
-      var amt = extraData[idx].amount ? Number(extraData[idx].amount).toLocaleString('ko-KR') : '';
-      row.innerHTML =
-        '<input class="ei-amt" type="text" inputmode="numeric" placeholder="금액" value="'+amt+'" oninput="onNum(this)" onchange="updateExtra('+idx+','amount',this.value)">'+
-        '<input class="ei-src" type="text" placeholder="투입 출처" value="'+(extraData[idx].source||'')+'" oninput="updateExtra('+idx+','source',this.value)">'+
+function buildExtraUI(){
+  var c=document.getElementById('extraItems'); if(!c) return;
+  c.innerHTML='';
+  for(var i=0;i<extraData.length;i++){
+    (function(idx){
+      var row=document.createElement('div'); row.className='extra-row';
+      var amt=extraData[idx].amount?Number(extraData[idx].amount).toLocaleString('ko-KR'):'';
+      row.innerHTML=
+        '<input class="ei-amt" type="text" inputmode="numeric" placeholder="금액" value="'+amt+'" oninput="onNum(this)" onchange="updateExtra('+idx+',\'amount\',this.value)">'+
+        '<input class="ei-src" type="text" placeholder="투입 출처" value="'+(extraData[idx].source||'')+'" oninput="updateExtra('+idx+',\'source\',this.value)">'+
         '<button class="ei-del" onclick="removeExtra('+idx+')">✕</button>';
       c.appendChild(row);
     })(i);
   }
 }
-function addExtraRow() {
-  extraData.push({amount:'', source:''});
-  buildExtraUI();
+function addExtraRow(){ extraData.push({amount:'',source:''}); buildExtraUI(); }
+function updateExtra(idx,key,val){
+  if(!extraData[idx]) return;
+  if(key==='amount'){ val=val.replace(/,/g,''); extraData[idx].amount=val===''?'':Number(val); }
+  else extraData[idx].source=val;
 }
-function updateExtra(idx, key, val) {
-  if (!extraData[idx]) return;
-  if (key === 'amount') {
-    val = val.replace(/,/g,'');
-    extraData[idx].amount = val === '' ? '' : Number(val);
-  } else {
-    extraData[idx].source = val;
-  }
-}
-function removeExtra(idx) {
-  extraData.splice(idx, 1); buildExtraUI();
-}
-function saveExtra() {
+function removeExtra(idx){ extraData.splice(idx,1); buildExtraUI(); }
+function saveExtra(){
   saveExtraLocal();
-  var msg = document.getElementById('extraMsg');
-  msg.textContent = '✓ 추가 예수금 저장 완료';
-  setTimeout(function(){ msg.textContent=''; }, 2000);
+  var msg=document.getElementById('extraMsg');
+  msg.textContent='✓ 추가 예수금 저장 완료';
+  setTimeout(function(){ msg.textContent=''; },2000);
   renderDash();
 }
+function toggleLoanExcl(){ showLoanExcl=!showLoanExcl; renderDash(); }
 
-function toggleLoanExcl() {
-  showLoanExcl = !showLoanExcl;
-  renderDash();
-}
-
-/* ═══════════════════════════════════
-   Sheets 통신
-   JSONP: 동시 요청 충돌 없이 순차 처리
-═══════════════════════════════════ */
-var _cbIdx = 0;
-
-/* JSONP 단일 요청 — 절대 중복 없음 */
-function doJsonp(action, cb){
+/* ═══════════════════════════
+   Sheets JSONP 통신
+═══════════════════════════ */
+function doJsonp(action,cb){
   if(!MEM.scriptUrl){ cb(null); return; }
   _cbIdx++;
-  var fn  = '__jscb' + _cbIdx;
-  var sc  = null;
-  var tid = setTimeout(function(){
+  var fn='__jscb'+_cbIdx;
+  var sc=null;
+  var tid=setTimeout(function(){
     delete window[fn];
     if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
-    console.warn('[Sheets] 타임아웃:', action);
+    console.warn('[Sheets] 타임아웃:',action);
     cb(null);
-  }, 20000);
-
-  window[fn] = function(data){
-    clearTimeout(tid);
-    delete window[fn];
+  },20000);
+  window[fn]=function(data){
+    clearTimeout(tid); delete window[fn];
     if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
     cb(data);
   };
-
-  sc = document.createElement('script');
-  sc.src = MEM.scriptUrl
-    + '?action='   + encodeURIComponent(action)
-    + '&callback=' + encodeURIComponent(fn)
-    + '&_t='       + Date.now();
-  sc.onerror = function(){
-    clearTimeout(tid);
-    delete window[fn];
+  sc=document.createElement('script');
+  sc.src=MEM.scriptUrl+'?action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(fn)+'&_t='+Date.now();
+  sc.onerror=function(){
+    clearTimeout(tid); delete window[fn];
     if(sc.parentNode) sc.parentNode.removeChild(sc);
-    console.warn('[Sheets] 스크립트 오류:', action);
+    console.warn('[Sheets] 스크립트 오류:',action);
     cb(null);
   };
   document.head.appendChild(sc);
 }
-
-/* POST — no-cors (저장/삭제) */
-function doPost(body, cb){
+function doPost(body,cb){
   if(!MEM.scriptUrl){ if(cb) cb(false); return; }
-  fetch(MEM.scriptUrl, {
-    method:'POST', mode:'no-cors',
+  fetch(MEM.scriptUrl,{
+    method:'POST',mode:'no-cors',
     headers:{'Content-Type':'text/plain'},
     body:JSON.stringify(body)
   }).then(function(){ if(cb) cb(true); })
-    .catch(function(e){ console.error('[Sheets] POST 실패:', e); if(cb) cb(false); });
+    .catch(function(e){ console.error('[Sheets] POST 실패:',e); if(cb) cb(false); });
 }
-
-/* Sheets에서 전체 데이터 로드 */
 function pullFromSheets(){
   if(!MEM.scriptUrl){ setDot('','연결 안됨'); return; }
   setDot('ing','동기화 중...');
-  doJsonp('getAll', function(result){
-    if(result && result.data !== undefined){
-      var clean={}, k;
+  doJsonp('getAll',function(result){
+    if(result&&result.data!==undefined){
+      var clean={},k;
       for(k in result.data){
         if(!result.data.hasOwnProperty(k)) continue;
-        var nd=normDate(k);
-        if(nd) clean[nd]=result.data[k];
+        var nd=normDate(k); if(nd) clean[nd]=result.data[k];
       }
       MEM.stockData=clean;
       var cnt=Object.keys(clean).length;
-      setDot('ok', cnt+'개 기록');
-      console.log('[Sheets] 로드 완료:', cnt+'개');
+      setDot('ok',cnt+'개 기록');
+      console.log('[Sheets] 로드 완료:',cnt+'개');
     } else {
-      console.error('[Sheets] 실패:', result);
-      setDot('err','연결 실패');
+      console.error('[Sheets] 실패:',result);
+      setDot('err','연결 실패 — Apps Script URL 재확인');
     }
     dashEntryIdx=-1;
     buildCal(); renderDash(); renderHist();
     var ent=getMonthEntries();
-    setTimeout(function(){
-      requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });
-    }, 200);
+    setTimeout(function(){ requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); }); },200);
   });
 }
 
-/* 저장: POST 후 3초 기다렸다가 pull */
+/* ═══════════════════════════
+   저장 / 삭제
+═══════════════════════════ */
 function saveEntry(){
   if(!selectedDate){ alert('달력에서 날짜를 선택하세요.'); return; }
   if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); openSettings(); return; }
-  var names=MEM.stockNames, values=[];
+  var names=MEM.stockNames,values=[];
   for(var i=0;i<N;i++) values.push(getRaw('v'+i));
   var yesueum=getRaw('yeInput');
   var msg=document.getElementById('smsg');
   msg.textContent='⏳ 저장 중...';
   setDot('ing','저장 중...');
   showLoader('Google Sheets에 저장 중...');
-  doPost({action:'save', date:selectedDate, values:values, names:names.slice(), yesueum:yesueum}, function(ok){
+  doPost({action:'save',date:selectedDate,values:values,names:names.slice(),yesueum:yesueum},function(ok){
     hideLoader();
     if(!ok){ msg.textContent='❌ POST 전송 실패'; setDot('err','저장 실패'); return; }
-    msg.textContent='✓ 저장 전송 완료 — Sheets 반영 확인 중...';
-    /* Apps Script가 시트에 기록 완료할 시간을 충분히 준 후 pull */
+    msg.textContent='✓ 전송 완료 — Sheets 반영 중...';
     setTimeout(function(){
       pullFromSheets();
       msg.textContent='✓ '+fmtDate(selectedDate)+' 저장 완료!';
-      setTimeout(function(){ msg.textContent=''; }, 3000);
-    }, 4000);
+      setTimeout(function(){ msg.textContent=''; },3000);
+    },4000);
   });
 }
-
-/* 삭제: POST 후 3초 기다렸다가 pull */
 function delEntry(date){
   if(!confirm(fmtDate(date)+' 기록을 삭제하시겠습니까?')) return;
   if(!MEM.scriptUrl){ alert('Google Sheets가 연결되어 있지 않습니다.'); return; }
   showLoader('삭제 중...');
-  doPost({action:'delete', date:date}, function(ok){
+  doPost({action:'delete',date:date},function(ok){
     hideLoader();
     if(!ok){ alert('삭제 전송 실패'); return; }
-    setTimeout(function(){ pullFromSheets(); }, 4000);
+    setTimeout(function(){ pullFromSheets(); },4000);
   });
 }
 
-/* ═══════════════════════════════════
+/* ═══════════════════════════
    달력
-═══════════════════════════════════ */
+═══════════════════════════ */
 function buildCal(){
   var y=calYear,m=calMonth,mm=padZ(m+1);
   document.getElementById('calMonth').textContent=y+'년 '+(m+1)+'월';
   var grid=document.getElementById('calGrid'); grid.innerHTML='';
   var dows=['일','월','화','수','목','금','토'];
-  for(var di=0;di<7;di++){var dw=document.createElement('div');dw.className='cal-dow';dw.textContent=dows[di];grid.appendChild(dw);}
+  for(var di=0;di<7;di++){ var dw=document.createElement('div'); dw.className='cal-dow'; dw.textContent=dows[di]; grid.appendChild(dw); }
   var first=new Date(y,m,1).getDay(), last=new Date(y,m+1,0).getDate(), prevLast=new Date(y,m,0).getDate(), today=todayStr();
   var recorded={};
   for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(y+'-'+mm)===0) recorded[k]=true;
-  for(var pi=0;pi<first;pi++){var pd=document.createElement('div');pd.className='cal-day other';pd.textContent=prevLast-first+pi+1;grid.appendChild(pd);}
+  for(var pi=0;pi<first;pi++){ var pd=document.createElement('div'); pd.className='cal-day other'; pd.textContent=prevLast-first+pi+1; grid.appendChild(pd); }
   for(var day=1;day<=last;day++){
     var dd=padZ(day),ds=y+'-'+mm+'-'+dd,dow=(first+day-1)%7;
     var el=document.createElement('div');
-    var c='cal-day';
-    if(dow===0) c+=' sun'; if(dow===6) c+=' sat';
-    if(recorded[ds]) c+=' has-data';
-    if(ds===selectedDate) c+=' selected';
-    if(ds===today) c+=' today';
-    el.className=c; el.textContent=day;
-    (function(s){el.onclick=function(){selectDate(s);};})(ds);
+    var cls2='cal-day';
+    if(dow===0) cls2+=' sun'; if(dow===6) cls2+=' sat';
+    if(recorded[ds]) cls2+=' has-data';
+    if(ds===selectedDate) cls2+=' selected';
+    if(ds===today) cls2+=' today';
+    el.className=cls2; el.textContent=day;
+    (function(s){ el.onclick=function(){ selectDate(s); }; })(ds);
     grid.appendChild(el);
   }
   var rem=(first+last)%7===0?0:7-(first+last)%7;
-  for(var ni=1;ni<=rem;ni++){var nd=document.createElement('div');nd.className='cal-day other';nd.textContent=ni;grid.appendChild(nd);}
+  for(var ni=1;ni<=rem;ni++){ var nd=document.createElement('div'); nd.className='cal-day other'; nd.textContent=ni; grid.appendChild(nd); }
   document.getElementById('calSelLabel').textContent=selectedDate?fmtDate(selectedDate):'날짜를 선택하세요';
 }
-function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}buildCal();}
-function selectDate(ds){selectedDate=ds;buildCal();buildGrid();}
+function calMove(d){ calMonth+=d; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} buildCal(); }
+function selectDate(ds){ selectedDate=ds; buildCal(); buildGrid(); }
 
-/* ═══════════════════════════════════
-   입력
-═══════════════════════════════════ */
+/* ═══════════════════════════
+   입력 폼
+═══════════════════════════ */
 function onNum(el){
-  var raw=el.value.replace(/[^0-9]/g,'');if(!raw){el.value='';return;}
+  var raw=el.value.replace(/[^0-9]/g,''); if(!raw){ el.value=''; return; }
   var n=parseInt(raw,10),pos=el.selectionStart,old=el.value.length;
   el.value=n.toLocaleString('ko-KR');
-  var diff=el.value.length-old;try{el.setSelectionRange(pos+diff,pos+diff);}catch(e){}
+  var diff=el.value.length-old;
+  try{ el.setSelectionRange(pos+diff,pos+diff); }catch(e){}
 }
-function getRaw(id){var el=document.getElementById(id);if(!el)return'';var v=el.value.replace(/,/g,'');return v===''?'':Number(v);}
+function getRaw(id){ var el=document.getElementById(id); if(!el) return ''; var v=el.value.replace(/,/g,''); return v===''?'':Number(v); }
 function buildGrid(){
-  var names=MEM.stockNames, exist=selectedDate&&MEM.stockData[selectedDate]?MEM.stockData[selectedDate]:{};
+  var names=MEM.stockNames,exist=selectedDate&&MEM.stockData[selectedDate]?MEM.stockData[selectedDate]:{};
   var grid=document.getElementById('sgrid'); grid.innerHTML='';
   for(var bi=0;bi<BROKERS.length;bi++){
     var br=BROKERS[bi];
@@ -1185,7 +1102,7 @@ function buildGrid(){
     hdr.innerHTML='<span class="broker-badge">'+br.name+'</span><div class="broker-line"></div>';
     grid.appendChild(hdr);
     for(var ii=0;ii<br.indices.length;ii++){
-      var idx=br.indices[ii], raw=exist.values&&exist.values[idx]!==undefined?exist.values[idx]:'';
+      var idx=br.indices[ii],raw=exist.values&&exist.values[idx]!==undefined?exist.values[idx]:'';
       var disp=(raw===''||raw===null||raw===undefined)?'':Number(raw).toLocaleString('ko-KR');
       var nv=(names[idx]||'').replace(/"/g,'&quot;');
       var row=document.createElement('div'); row.className='acc-row';
@@ -1197,29 +1114,20 @@ function buildGrid(){
   var ye=exist.yesueum!==undefined&&exist.yesueum!==''&&exist.yesueum!==null?Number(exist.yesueum).toLocaleString('ko-KR'):'';
   document.getElementById('yeInput').value=ye;
 }
-function updName(i,v){ MEM.stockNames[i]=v; }
 
-/* ═══════════════════════════════════
-   탭 전환
-═══════════════════════════════════ */
+/* ═══════════════════════════
+   탭 / 차트 타입
+═══════════════════════════ */
 function goTab(tab){
   var pages=document.querySelectorAll('.rpage'),tabs=document.querySelectorAll('.rtab');
   for(var i=0;i<pages.length;i++) pages[i].classList.remove('on');
   for(var j=0;j<tabs.length;j++) tabs[j].classList.remove('on');
   document.getElementById('r-'+tab).classList.add('on');
   var order=['dashboard','history'];
-  for(var k=0;k<order.length;k++) if(order[k]===tab){tabs[k].classList.add('on');break;}
+  for(var k=0;k<order.length;k++) if(order[k]===tab){ tabs[k].classList.add('on'); break; }
   if(tab==='history') renderHist();
-  else {
-    renderDash();
-    var ent=getMonthEntries();
-    setTimeout(function(){ requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); }); }, 100);
-  }
+  else{ renderDash(); var ent=getMonthEntries(); setTimeout(function(){ requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); }); },100); }
 }
-
-/* ═══════════════════════════════════
-   차트 타입
-═══════════════════════════════════ */
 function setChartType(which,type,btn){
   chartTypes[which]=type;
   var btns=btn.parentNode.querySelectorAll('.ct-btn');
@@ -1229,14 +1137,14 @@ function setChartType(which,type,btn){
   requestAnimationFrame(function(){ if(which==='total') drawTotalChart(entries); else drawDeltaChart(entries); });
 }
 
-/* ═══════════════════════════════════
-   대시보드
-═══════════════════════════════════ */
+/* ═══════════════════════════
+   대시보드 메인
+═══════════════════════════ */
 function chMon(d){ dashMonth+=d; if(dashMonth>11){dashMonth=0;dashYear++;} if(dashMonth<0){dashMonth=11;dashYear--;} dashEntryIdx=-1; renderDash(); }
 function getMonthEntries(){
-  var mm=padZ(dashMonth+1), ym=dashYear+'-'+mm, res=[];
+  var mm=padZ(dashMonth+1),ym=dashYear+'-'+mm,res=[];
   for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(ym)===0) res.push([k,MEM.stockData[k]]);
-  res.sort(function(a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0;});
+  res.sort(function(a,b){ return a[0]<b[0]?-1:a[0]>b[0]?1:0; });
   return res;
 }
 function chDay(d){
@@ -1272,33 +1180,34 @@ function renderDash(){
   requestAnimationFrame(function(){ drawTotalChart(entries); drawDeltaChart(entries); });
 }
 
+/* ═══════════════════════════
+   KPI 카드
+═══════════════════════════ */
 function drawKpi(entries){
   var c=document.getElementById('kpiGrid');
+  var eb=document.getElementById('extraBoards'); if(eb) eb.innerHTML='';
   if(!entries.length){
     c.innerHTML='<div class="kpi wide" style="grid-column:span 4"><div class="kpi-lbl">이 달 데이터 없음</div><div class="kpi-val flat" style="font-size:15px">왼쪽에서 날짜를 선택하고 금액을 입력하세요</div></div>';
-    document.getElementById('extraBoards').innerHTML='';
     return;
   }
   var idx=dashEntryIdx===-1?entries.length-1:dashEntryIdx;
   if(idx>=entries.length) idx=entries.length-1;
-  var last=entries[idx][1], total=getTotal(last);
+  var last=entries[idx][1],total=getTotal(last);
   var prev=idx>0?getTotal(entries[idx-1][1]):total;
-  var first=getTotal(entries[0][1]), dDay=total-prev, dMonth=total-first;
+  var first=getTotal(entries[0][1]),dDay=total-prev,dMonth=total-first;
   var pct=first?((dMonth/first)*100).toFixed(2):'0.00';
   var loanTotal=getLoanTotal();
-  var totalExLoan=total-loanTotal;
 
-  /* 총자산 카드 — 대출금 제외 버튼 포함 */
   var loanExclHtml='';
   if(showLoanExcl){
     loanExclHtml='<div class="loan-excl-row">'+
-      '<span style="font-size:11px;color:var(--text3)">대출금 제외</span>'+
-      '<span class="loan-excl-val show">'+fmtW(totalExLoan)+'</span>'+
+      '<span style="font-size:11px;color:var(--text3)">대출금 제외 총자산</span>'+
+      '<span style="font-family:\'DM Mono\',monospace;font-size:13px;color:var(--loan)">'+fmtW(total-loanTotal)+'</span>'+
       '<button class="loan-excl-btn active" onclick="toggleLoanExcl()">숨기기</button>'+
     '</div>';
   } else {
     loanExclHtml='<div class="loan-excl-row">'+
-      '<button class="loan-excl-btn" onclick="toggleLoanExcl()">대출금 제외 금액</button>'+
+      '<button class="loan-excl-btn" onclick="toggleLoanExcl()">대출금 제외 금액 보기</button>'+
     '</div>';
   }
 
@@ -1320,55 +1229,57 @@ function drawKpi(entries){
       '<div class="kpi-sub flat">'+entries[0][0].slice(5)+' ~ '+entries[entries.length-1][0].slice(5)+'</div>'+
     '</div>';
 
-  drawExtraBoards(entries, total, dMonth);
+  drawExtraBoards(entries,total);
 }
-
-/* 연간증감 + 추가예수금 보드 */
-function drawExtraBoards(entries, total, dMonth){
+function drawExtraBoards(entries,total){
   var c=document.getElementById('extraBoards'); if(!c) return;
-
-  /* 연간 증감: 올해 1월 1일 기준 첫 데이터와 비교 */
-  var yearStr = String(dashYear);
-  var allKeys = Object.keys(MEM.stockData).filter(function(k){ return k.indexOf(yearStr)===0; }).sort();
-  var dYear=0, yearPct='0.00', yearFirst=0;
+  var yearStr=String(dashYear);
+  var allKeys=[];
+  for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(yearStr)===0) allKeys.push(k);
+  allKeys.sort();
+  var dYear=0,yearPct='0.00';
   if(allKeys.length>0){
-    yearFirst = getTotal(MEM.stockData[allKeys[0]]);
-    dYear = total - yearFirst;
-    yearPct = yearFirst ? ((dYear/yearFirst)*100).toFixed(2) : '0.00';
+    var yFirst=getTotal(MEM.stockData[allKeys[0]]);
+    dYear=total-yFirst;
+    yearPct=yFirst?((dYear/yFirst)*100).toFixed(2):'0.00';
   }
-
-  var extraTotal = getExtraTotal();
-
-  c.innerHTML=
-    '<div class="extra-board">'+
-      '<div class="eb-lbl">연간 증감 ('+yearStr+')</div>'+
-      '<div class="eb-val '+clsN(dYear)+'">'+fmtD(dYear)+'</div>'+
-      '<div class="eb-sub '+clsN(dYear)+'">'+(dYear>=0?'+':'')+yearPct+'%</div>'+
-    '</div>'+
-    '<div class="extra-board">'+
-      '<div class="eb-lbl">추가 예수금 투입 총액</div>'+
-      '<div class="eb-val" style="color:var(--extra)">'+fmtW(extraTotal)+'</div>'+
-      '<div class="eb-sub flat">'+extraData.length+'건</div>'+
-    '</div>'+
-    (loanTotal>0?
-    '<div class="extra-board">'+
+  var extraTotal=getExtraTotal(),loanTotal=getLoanTotal();
+  var html='<div class="extra-board">'+
+    '<div class="eb-lbl">연간 증감 ('+yearStr+')</div>'+
+    '<div class="eb-val '+clsN(dYear)+'">'+fmtD(dYear)+'</div>'+
+    '<div class="eb-sub '+clsN(dYear)+'">'+(dYear>=0?'+':'')+yearPct+'%</div>'+
+  '</div>'+
+  '<div class="extra-board">'+
+    '<div class="eb-lbl">추가 예수금 투입 총액</div>'+
+    '<div class="eb-val" style="color:var(--extra)">'+fmtW(extraTotal)+'</div>'+
+    '<div class="eb-sub flat">'+extraData.length+'건</div>'+
+  '</div>';
+  if(loanTotal>0){
+    html+='<div class="extra-board">'+
       '<div class="eb-lbl">총 대출금</div>'+
       '<div class="eb-val" style="color:var(--loan)">'+fmtW(loanTotal)+'</div>'+
-      '<div class="eb-sub flat">카카오/신한/하나</div>'+
-    '</div>':
-    '');
+      '<div class="eb-sub flat">카카오 / 신한 / 하나</div>'+
+    '</div>';
+  }
+  c.innerHTML=html;
 }
 
+/* ═══════════════════════════
+   증권사 카드
+═══════════════════════════ */
 function drawBrokerPills(entries){
-  var c=document.getElementById('brokerPills');
-  if(!entries.length){c.innerHTML='';return;}
+  var c=document.getElementById('brokerPills'); if(!c||!entries.length){ if(c) c.innerHTML=''; return; }
   var idx=dashEntryIdx===-1?entries.length-1:dashEntryIdx;
   if(idx>=entries.length) idx=entries.length-1;
-  var last=entries[idx][1], prev=idx>0?entries[idx-1][1]:null;
-  var html='', cm={ki:'#c47000',to:'#2060b0',ko:'#1a6b40'};
+  var last=entries[idx][1],prev=idx>0?entries[idx-1][1]:null;
+  var html='';
   for(var bi=0;bi<BROKERS.length;bi++){
     var br=BROKERS[bi],bt=0,bp=0;
-    for(var ii=0;ii<br.indices.length;ii++){var ix=br.indices[ii];if(last.values&&last.values[ix])bt+=Number(last.values[ix])||0;if(prev&&prev.values&&prev.values[ix])bp+=Number(prev.values[ix])||0;}
+    for(var ii=0;ii<br.indices.length;ii++){
+      var ix=br.indices[ii];
+      if(last.values&&last.values[ix]) bt+=Number(last.values[ix])||0;
+      if(prev&&prev.values&&prev.values[ix]) bp+=Number(prev.values[ix])||0;
+    }
     var bd=bt-bp;
     html+='<div class="bpill '+br.cls+'"><div class="bpill-lbl">'+br.name+'</div><div class="bpill-val">'+fmtW(bt)+'</div><div class="bpill-delta '+clsN(bd)+'">'+fmtD(bd)+'</div></div>';
   }
@@ -1377,12 +1288,12 @@ function drawBrokerPills(entries){
   c.innerHTML=html;
 }
 
-/* ═══════════════════════════════════
+/* ═══════════════════════════
    차트
-═══════════════════════════════════ */
+═══════════════════════════ */
 function getCtx(id){
-  var cv=document.getElementById(id), ctx=cv.getContext('2d');
-  var dpr=window.devicePixelRatio||1, w=cv.offsetWidth;
+  var cv=document.getElementById(id),ctx=cv.getContext('2d');
+  var dpr=window.devicePixelRatio||1,w=cv.offsetWidth;
   if(!w&&cv.parentElement) w=cv.parentElement.offsetWidth;
   if(!w) w=500;
   var h=parseInt(cv.getAttribute('height'))||130;
@@ -1391,11 +1302,11 @@ function getCtx(id){
 }
 function drawTotalChart(entries){
   var r=getCtx('cvTotal'),ctx=r.ctx,w=r.w,h=r.h,type=chartTypes['total'];
-  if(entries.length<2){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('데이터 2개 이상 필요',w/2,h/2);return;}
+  if(entries.length<2){ ctx.fillStyle='var(--text3)'||'#5a5878'; ctx.font='13px sans-serif'; ctx.textAlign='center'; ctx.fillText('데이터 2개 이상 필요',w/2,h/2); return; }
   var tots=[],labs=[];
-  for(var i=0;i<entries.length;i++){tots.push(getTotal(entries[i][1]));labs.push(entries[i][0].slice(8));}
+  for(var i=0;i<entries.length;i++){ tots.push(getTotal(entries[i][1])); labs.push(entries[i][0].slice(8)); }
   var mn=tots[0],mx=tots[0];
-  for(var j=1;j<tots.length;j++){if(tots[j]<mn)mn=tots[j];if(tots[j]>mx)mx=tots[j];}
+  for(var j=1;j<tots.length;j++){ if(tots[j]<mn) mn=tots[j]; if(tots[j]>mx) mx=tots[j]; }
   var pad=Math.max((mx-mn)*0.3,mx*0.05),mnA=Math.max(0,mn-pad),rng=mx-mnA||1;
   var pT=16,pB=26,pL=10,pR=10,cw=w-pL-pR,ch=h-pT-pB;
   var step=Math.max(1,Math.floor(tots.length/8));
@@ -1405,39 +1316,40 @@ function drawTotalChart(entries){
       var x=pL+(k/tots.length)*cw+(cw/tots.length-bw)/2;
       var bh=Math.max(3,((tots[k]-mnA)/rng)*ch);
       var g=ctx.createLinearGradient(0,h-pB-bh,0,h-pB);
-      g.addColorStop(0,'rgba(200,160,106,.85)');g.addColorStop(1,'rgba(200,160,106,.25)');
+      g.addColorStop(0,'rgba(200,160,106,.85)'); g.addColorStop(1,'rgba(200,160,106,.25)');
       ctx.fillStyle=g;
-      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,h-pB-bh,bw,bh,[3,3,0,0]);ctx.fill();}else ctx.fillRect(x,h-pB-bh,bw,bh);
-      if(k%step===0||k===tots.length-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(labs[k],x+bw/2,h-8);}
+      ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x,h-pB-bh,bw,bh,[3,3,0,0]); else ctx.rect(x,h-pB-bh,bw,bh); ctx.fill();
+      if(k%step===0||k===tots.length-1){ ctx.fillStyle='#7a7898'; ctx.font='9px monospace'; ctx.textAlign='center'; ctx.fillText(labs[k],x+bw/2,h-8); }
     }
   } else {
-    var xf=function(i){return pL+(i/(tots.length-1))*cw;};
-    var yf=function(v){return pT+ch-((v-mnA)/rng)*ch;};
+    var xf=function(i){ return pL+(i/(tots.length-1))*cw; };
+    var yf=function(v){ return pT+ch-((v-mnA)/rng)*ch; };
     var g2=ctx.createLinearGradient(0,pT,0,pT+ch);
-    g2.addColorStop(0,'rgba(200,160,106,.22)');g2.addColorStop(1,'rgba(200,160,106,0)');
-    ctx.beginPath();ctx.moveTo(xf(0),yf(tots[0]));
+    g2.addColorStop(0,'rgba(200,160,106,.22)'); g2.addColorStop(1,'rgba(200,160,106,0)');
+    ctx.beginPath(); ctx.moveTo(xf(0),yf(tots[0]));
     for(var l=1;l<tots.length;l++) ctx.lineTo(xf(l),yf(tots[l]));
-    ctx.lineTo(xf(tots.length-1),h-pB);ctx.lineTo(xf(0),h-pB);ctx.closePath();ctx.fillStyle=g2;ctx.fill();
-    ctx.beginPath();ctx.moveTo(xf(0),yf(tots[0]));
+    ctx.lineTo(xf(tots.length-1),h-pB); ctx.lineTo(xf(0),h-pB); ctx.closePath(); ctx.fillStyle=g2; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(xf(0),yf(tots[0]));
     for(var m=1;m<tots.length;m++) ctx.lineTo(xf(m),yf(tots[m]));
-    ctx.strokeStyle='#c8a06a';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+    ctx.strokeStyle='#c8a06a'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
     for(var n=0;n<tots.length;n++){
-      ctx.beginPath();ctx.arc(xf(n),yf(tots[n]),3.5,0,Math.PI*2);ctx.fillStyle='#c8a06a';ctx.fill();
-      if(n%step===0||n===tots.length-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(labs[n],xf(n),h-8);}
+      ctx.beginPath(); ctx.arc(xf(n),yf(tots[n]),3.5,0,Math.PI*2); ctx.fillStyle='#c8a06a'; ctx.fill();
+      if(n%step===0||n===tots.length-1){ ctx.fillStyle='#7a7898'; ctx.font='9px monospace'; ctx.textAlign='center'; ctx.fillText(labs[n],xf(n),h-8); }
     }
   }
 }
 function drawDeltaChart(entries){
   var r=getCtx('cvDelta'),ctx=r.ctx,w=r.w,h=r.h,type=chartTypes['delta'];
   document.getElementById('dleg').innerHTML='';
-  if(entries.length<2){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('2일 이상 데이터 필요',w/2,h/2);return;}
+  if(entries.length<2){ ctx.fillStyle='#7a7898'; ctx.font='13px sans-serif'; ctx.textAlign='center'; ctx.fillText('2일 이상 데이터 필요',w/2,h/2); return; }
   var deltas=[],dlabs=[];
-  for(var i=1;i<entries.length;i++){deltas.push(getTotal(entries[i][1])-getTotal(entries[i-1][1]));dlabs.push(entries[i][0].slice(8));}
-  var mxA=1;for(var j=0;j<deltas.length;j++) if(Math.abs(deltas[j])>mxA) mxA=Math.abs(deltas[j]);
+  for(var i=1;i<entries.length;i++){ deltas.push(getTotal(entries[i][1])-getTotal(entries[i-1][1])); dlabs.push(entries[i][0].slice(8)); }
+  var mxA=1; for(var j=0;j<deltas.length;j++) if(Math.abs(deltas[j])>mxA) mxA=Math.abs(deltas[j]);
   var pT=10,pB=24,pL=6,pR=6,cw=w-pL-pR,ch=h-pT-pB,midY=pT+ch/2;
-  var maxBarH=ch/2*0.85, step=Math.max(1,Math.floor(deltas.length/8));
-  ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pL,midY);ctx.lineTo(w-pR,midY);ctx.stroke();
-  var upC='rgba(248,113,113,.85)', dnC='rgba(96,165,250,.85)';
+  var maxBarH=ch/2*0.85,step=Math.max(1,Math.floor(deltas.length/8));
+  ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pL,midY); ctx.lineTo(w-pR,midY); ctx.stroke();
+  var upC='rgba(248,113,113,.85)',dnC='rgba(96,165,250,.85)';
   if(type==='bar'){
     var bw=Math.max(6,cw/deltas.length-2);
     for(var k=0;k<deltas.length;k++){
@@ -1445,33 +1357,38 @@ function drawDeltaChart(entries){
       var bh=Math.max(2,(Math.abs(deltas[k])/mxA)*maxBarH);
       var isUp=deltas[k]>=0;
       ctx.fillStyle=isUp?upC:dnC;
-      if(ctx.roundRect){ctx.beginPath();if(isUp)ctx.roundRect(x,midY-bh,bw,bh,[3,3,0,0]);else ctx.roundRect(x,midY,bw,bh,[0,0,3,3]);ctx.fill();}
-      else{if(isUp)ctx.fillRect(x,midY-bh,bw,bh);else ctx.fillRect(x,midY,bw,bh);}
-      if(k%step===0||k===deltas.length-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(dlabs[k],x+bw/2,h-6);}
+      ctx.beginPath();
+      if(ctx.roundRect){ if(isUp) ctx.roundRect(x,midY-bh,bw,bh,[3,3,0,0]); else ctx.roundRect(x,midY,bw,bh,[0,0,3,3]); }
+      else { if(isUp) ctx.rect(x,midY-bh,bw,bh); else ctx.rect(x,midY,bw,bh); }
+      ctx.fill();
+      if(k%step===0||k===deltas.length-1){ ctx.fillStyle='#7a7898'; ctx.font='9px monospace'; ctx.textAlign='center'; ctx.fillText(dlabs[k],x+bw/2,h-6); }
     }
   } else {
-    var xf=function(i){return pL+(i/(deltas.length-1||1))*cw;};
-    var yf=function(v){return midY-((v)/mxA)*maxBarH;};
-    ctx.beginPath();ctx.moveTo(xf(0),midY);
-    for(var l=0;l<deltas.length;l++) ctx.lineTo(xf(l),yf(deltas[l]));
-    ctx.lineTo(xf(deltas.length-1),midY);ctx.closePath();ctx.fillStyle='rgba(200,160,106,.08)';ctx.fill();
-    ctx.beginPath();ctx.moveTo(xf(0),yf(deltas[0]));
-    for(var l2=1;l2<deltas.length;l2++) ctx.lineTo(xf(l2),yf(deltas[l2]));
-    ctx.strokeStyle='rgba(200,160,106,.75)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+    var xf2=function(i){ return pL+(i/(deltas.length-1||1))*cw; };
+    var yf2=function(v){ return midY-((v)/mxA)*maxBarH; };
+    ctx.beginPath(); ctx.moveTo(xf2(0),midY);
+    for(var l=0;l<deltas.length;l++) ctx.lineTo(xf2(l),yf2(deltas[l]));
+    ctx.lineTo(xf2(deltas.length-1),midY); ctx.closePath(); ctx.fillStyle='rgba(200,160,106,.08)'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(xf2(0),yf2(deltas[0]));
+    for(var l2=1;l2<deltas.length;l2++) ctx.lineTo(xf2(l2),yf2(deltas[l2]));
+    ctx.strokeStyle='rgba(200,160,106,.75)'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
     for(var m=0;m<deltas.length;m++){
-      ctx.beginPath();ctx.arc(xf(m),yf(deltas[m]),3.5,0,Math.PI*2);
-      ctx.fillStyle=deltas[m]>=0?'#f87171':'#60a5fa';ctx.fill();
-      if(m%step===0||m===deltas.length-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(dlabs[m],xf(m),h-6);}
+      ctx.beginPath(); ctx.arc(xf2(m),yf2(deltas[m]),3.5,0,Math.PI*2);
+      ctx.fillStyle=deltas[m]>=0?'#f87171':'#60a5fa'; ctx.fill();
+      if(m%step===0||m===deltas.length-1){ ctx.fillStyle='#7a7898'; ctx.font='9px monospace'; ctx.textAlign='center'; ctx.fillText(dlabs[m],xf2(m),h-6); }
     }
   }
   document.getElementById('dleg').innerHTML=
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:50%;background:rgba(248,113,113,.85)"></div>증가</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:50%;background:rgba(96,165,250,.85)"></div>감소</div>';
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2)"><div style="width:8px;height:8px;border-radius:50%;background:rgba(248,113,113,.85)"></div>증가</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2)"><div style="width:8px;height:8px;border-radius:50%;background:rgba(96,165,250,.85)"></div>감소</div>';
 }
 
+/* ═══════════════════════════
+   계좌 테이블
+═══════════════════════════ */
 function drawAccTable(entries){
   var tbody=document.getElementById('accTbody'),accDate=document.getElementById('accDate');
-  if(!entries.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:24px">데이터 없음</td></tr>';accDate.textContent='—';return;}
+  if(!entries.length){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:24px">데이터 없음</td></tr>'; accDate.textContent='—'; return; }
   var idx=dashEntryIdx===-1?entries.length-1:dashEntryIdx;
   if(idx>=entries.length) idx=entries.length-1;
   var last=entries[idx][1],prev=idx>0?entries[idx-1][1]:null;
@@ -1479,7 +1396,11 @@ function drawAccTable(entries){
   var total=getTotal(last),names=MEM.stockNames,html='';
   for(var bi=0;bi<BROKERS.length;bi++){
     var br=BROKERS[bi],bt=0,bp=0;
-    for(var ii=0;ii<br.indices.length;ii++){var ix=br.indices[ii];if(last.values&&last.values[ix])bt+=Number(last.values[ix])||0;if(prev&&prev.values&&prev.values[ix])bp+=Number(prev.values[ix])||0;}
+    for(var ii=0;ii<br.indices.length;ii++){
+      var ix=br.indices[ii];
+      if(last.values&&last.values[ix]) bt+=Number(last.values[ix])||0;
+      if(prev&&prev.values&&prev.values[ix]) bp+=Number(prev.values[ix])||0;
+    }
     html+='<tr class="broker-sep"><td><span class="nb '+br.nb+'">'+br.name+'</span></td><td>'+fmtW(bt)+'</td><td class="'+clsN(bt-bp)+'">'+fmtD(bt-bp)+'</td><td>'+(total?(bt/total*100).toFixed(1)+'%':'-')+'</td></tr>';
     for(var ii2=0;ii2<br.indices.length;ii2++){
       var idx2=br.indices[ii2];
@@ -1497,15 +1418,15 @@ function drawAccTable(entries){
   tbody.innerHTML=html;
 }
 
-/* ═══════════════════════════════════
+/* ═══════════════════════════
    기록
-═══════════════════════════════════ */
+═══════════════════════════ */
 function renderHist(){
   var data=MEM.stockData,entries=[];
   for(var k in data) if(data.hasOwnProperty(k)) entries.push([k,data[k]]);
-  entries.sort(function(a,b){return a[0]<b[0]?1:a[0]>b[0]?-1:0;});
+  entries.sort(function(a,b){ return a[0]<b[0]?1:a[0]>b[0]?-1:0; });
   var c=document.getElementById('histList');
-  if(!entries.length){c.innerHTML='<div class="empty">📭<br>아직 기록이 없습니다.<br>왼쪽에서 날짜를 선택하고 저장하세요.</div>';return;}
+  if(!entries.length){ c.innerHTML='<div class="empty">📭<br>아직 기록이 없습니다.<br>왼쪽에서 날짜를 선택하고 저장하세요.</div>'; return; }
   var names=MEM.stockNames,html='';
   var bclrs={ki:'#f59e0b',to:'#60a5fa',ko:'#34d399'};
   for(var ei=0;ei<entries.length;ei++){
@@ -1533,9 +1454,9 @@ function renderHist(){
   c.innerHTML=html;
 }
 
-/* ═══════════════════════════════════
+/* ═══════════════════════════
    PDF
-═══════════════════════════════════ */
+═══════════════════════════ */
 function exportPDF(){
   var entries=getMonthEntries();
   var ml=dashYear+'년 '+(dashMonth+1)+'월';
@@ -1552,9 +1473,9 @@ function exportPDF(){
   });
 }
 
-/* ═══════════════════════════════════
-   모바일
-═══════════════════════════════════ */
+/* ═══════════════════════════
+   모바일 반응형
+═══════════════════════════ */
 function isMobile(){ return window.innerWidth<=768; }
 function mobGo(tab){
   if(!isMobile()) return;
@@ -1567,8 +1488,8 @@ function mobGo(tab){
     var pages=document.querySelectorAll('.rpage'),rtabs=document.querySelectorAll('.rtab');
     for(var i=0;i<pages.length;i++) pages[i].classList.remove('on');
     for(var j=0;j<rtabs.length;j++) rtabs[j].classList.remove('on');
-    var tid2=tab==='history'?'r-history':'r-dashboard';
-    var tp=document.getElementById(tid2); if(tp) tp.classList.add('on');
+    var tp=document.getElementById(tab==='history'?'r-history':'r-dashboard');
+    if(tp) tp.classList.add('on');
     if(tab==='history') renderHist(); else renderDash();
   }
   var mtabs=document.querySelectorAll('.mob-tab'),order=['input','dashboard','history','settings'];
@@ -1578,31 +1499,35 @@ function mobGo(tab){
 }
 function initResponsive(){
   if(isMobile()) mobGo('input');
+  else{
+    document.querySelector('.left').classList.remove('mob-active');
+    document.querySelector('.right').classList.remove('mob-active');
+  }
 }
 window.addEventListener('resize',function(){
   if(!isMobile()){ document.querySelector('.left').classList.remove('mob-active'); document.querySelector('.right').classList.remove('mob-active'); }
   else initResponsive();
 });
 
-/* ═══════════════════════════════════
+/* ═══════════════════════════
    초기화
-═══════════════════════════════════ */
+═══════════════════════════ */
 function init(){
-  loadUrl();
+  loadAll();  /* URL + 대출금 + 추가예수금 + 테마 로드 */
   var td=todayStr(),tp=td.split('-');
   selectedDate=td; calYear=parseInt(tp[0],10); calMonth=parseInt(tp[1],10)-1;
   dashYear=calYear; dashMonth=calMonth; dashEntryIdx=-1;
-  buildCal(); buildGrid(); buildLoanUI(); buildExtraUI(); renderDash(); renderHist();
+  buildCal(); buildGrid(); buildLoanUI(); buildExtraUI();
+  renderDash(); renderHist();
   initResponsive();
   if(MEM.scriptUrl){
     setDot('ing','Google Sheets 불러오는 중...');
-    setTimeout(function(){ pullFromSheets(); }, 200);
+    setTimeout(function(){ pullFromSheets(); },200);
   } else {
     setDot('','연결 안됨 — 상단 ⚙️ 설정에서 URL 입력');
   }
 }
 init();
-
 </script>
 </body>
 </html>

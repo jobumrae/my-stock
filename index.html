@@ -1473,7 +1473,8 @@ function showLoanEditPopup(){
         '<div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:.3px">현재 대출금</div>'+
         '<div style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--accent);margin-bottom:16px">₩'+LOAN_FIXED.toLocaleString('ko-KR')+'</div>'+
         '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">새 대출금액 입력 (숫자만)</div>'+
-        '<input id="loanAmtInput" type="text" inputmode="numeric" placeholder="200,000,000" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;padding:10px 12px;outline:none;margin-bottom:14px" value="'+LOAN_FIXED.toLocaleString('ko-KR')+'">'+
+        '<input id="loanAmtInput" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="200000000" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;padding:10px 12px;outline:none;margin-bottom:6px;-webkit-appearance:none;appearance:none">'+
+        '<div id="loanFmtPreview" style="font-size:12px;color:var(--text3);margin-bottom:12px;font-family:\'DM Mono\',monospace;min-height:16px"></div>'+
         '<div id="loanSaveMsg" style="font-size:12px;min-height:18px;margin-bottom:10px;text-align:center"></div>'+
         '<div style="display:flex;gap:8px">'+
           '<button id="loanSaveBtn" style="flex:1;background:var(--accent2);color:#0a0e1a;border:none;border-radius:10px;font-size:13px;font-weight:700;padding:10px 0;cursor:pointer">저장</button>'+
@@ -1483,13 +1484,15 @@ function showLoanEditPopup(){
     '</div>';
   document.body.appendChild(overlay);
 
-  /* 숫자 포맷 입력 */
+  /* 숫자 포맷 입력 — iOS 호환 */
   var inp=overlay.querySelector('#loanAmtInput');
+  var preview=overlay.querySelector('#loanFmtPreview');
+  inp.value=String(LOAN_FIXED);
+  preview.textContent='₩'+LOAN_FIXED.toLocaleString('ko-KR');
   inp.addEventListener('input', function(){
     var raw=this.value.replace(/[^0-9]/g,'');
-    var pos=this.selectionStart;
-    this.value=raw?Number(raw).toLocaleString('ko-KR'):'';
-    try{ this.setSelectionRange(pos,pos); }catch(e){}
+    this.value=raw;
+    preview.textContent=raw?'₩'+Number(raw).toLocaleString('ko-KR'):'';
   });
 
   /* 닫기 */
@@ -1501,7 +1504,7 @@ function showLoanEditPopup(){
   /* 저장 */
   overlay.querySelector('#loanSaveBtn').onclick=function(){
     var raw=inp.value.replace(/[^0-9]/g,'');
-    var newAmt=Number(raw);
+    var newAmt=Number(raw)||0;
     if(!raw||newAmt<0){ alert('올바른 금액을 입력하세요.'); return; }
     var msg=overlay.querySelector('#loanSaveMsg');
     if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); return; }

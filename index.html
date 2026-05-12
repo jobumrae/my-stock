@@ -28,7 +28,7 @@
   --accent: #c8a06a;
   --accent2: #7eb3f5;
   --up: #E52D2D;
-  --down: #2D61E5;
+  --down: #5B9BF8;
   --ki: #f59e0b;
   --to: #2D61E5;
   --ko: #34d399;
@@ -36,7 +36,7 @@
   --loan: #fb7185;
   --extra: #34d399;
   --glow-ki: rgba(245,158,11,.15);
-  --glow-to: rgba(45,97,229,.15);
+  --glow-to: rgba(91,155,248,.15);
   --glow-ko: rgba(52,211,153,.15);
   --glow-ye: rgba(192,132,252,.15);
 }
@@ -115,8 +115,8 @@ body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; background: var(--
 .broker-line { flex:1; height:1px; }
 .bki .broker-badge { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
 .bki .broker-line { background:rgba(245,158,11,.2); }
-.bto .broker-badge { background:rgba(45,97,229,.15); color:#2D61E5; border:1px solid rgba(45,97,229,.3); }
-.bto .broker-line { background:rgba(45,97,229,.2); }
+.bto .broker-badge { background:rgba(91,155,248,.15); color:#2D61E5; border:1px solid rgba(91,155,248,.3); }
+.bto .broker-line { background:rgba(91,155,248,.2); }
 .bko .broker-badge { background:rgba(52,211,153,.15); color:#34d399; border:1px solid rgba(52,211,153,.3); }
 .bko .broker-line { background:rgba(52,211,153,.2); }
 .bye .broker-badge { background:rgba(192,132,252,.15); color:#c084fc; border:1px solid rgba(192,132,252,.3); }
@@ -159,7 +159,7 @@ body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; background: var(--
 .month-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
 .month-row button.nav { background:var(--surface); border:1px solid var(--border); color:var(--text2); width:32px; height:32px; border-radius:8px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
 .month-row button.nav:hover { background:var(--surface2); color:var(--text); }
-.month-lbl { font-family:'DM Mono',monospace; font-size:15px; font-weight:700; color:var(--text); }
+.month-lbl { font-family:'DM Mono',monospace; font-size:15px; font-weight:800; color:var(--text); letter-spacing:-.3px; }
 .month-row-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
 .sync-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text2); font-size:12px; font-weight:600; padding:6px 14px; border-radius:8px; cursor:pointer; font-family:'Pretendard','Noto Sans KR',sans-serif; transition:all .15s; }
 .sync-btn:hover { background:var(--surface3); color:var(--text); }
@@ -240,7 +240,7 @@ body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; background: var(--
 .bpill-val { font-family:'DM Mono',monospace; font-size:19px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
 .bpill-delta { font-family:'DM Mono',monospace; font-size:14px; font-weight:700; white-space:nowrap; }
 .bpill.ki { background:var(--glow-ki); border-color:rgba(245,158,11,.25); } .bpill.ki .bpill-lbl { color:var(--ki); }
-.bpill.to { background:var(--glow-to); border-color:rgba(45,97,229,.25); } .bpill.to .bpill-lbl { color:var(--to); }
+.bpill.to { background:var(--glow-to); border-color:rgba(91,155,248,.25); } .bpill.to .bpill-lbl { color:var(--to); }
 .bpill.ko { background:var(--glow-ko); border-color:rgba(52,211,153,.25); } .bpill.ko .bpill-lbl { color:var(--ko); }
 .bpill.ye { background:var(--glow-ye); border-color:rgba(192,132,252,.25); } .bpill.ye .bpill-lbl { color:var(--ye); }
 
@@ -287,7 +287,7 @@ tbody tr:last-child td { border-bottom:none; }
 .broker-sep td:first-child { font-size:11px; font-weight:700; }
 .total-row td { background:rgba(200,160,106,.08)!important; font-weight:700; font-family:'DM Mono',monospace; font-size:13px; color:var(--accent); border-top:1px solid rgba(200,160,106,.2); }
 .nb { font-size:10px; font-weight:800; padding:2px 7px; border-radius:8px; }
-.nb-ki{background:rgba(245,158,11,.15);color:#f59e0b}.nb-to{background:rgba(45,97,229,.15);color:#2D61E5}.nb-ko{background:rgba(52,211,153,.15);color:#34d399}.nb-ye{background:rgba(192,132,252,.15);color:#c084fc}
+.nb-ki{background:rgba(245,158,11,.15);color:#f59e0b}.nb-to{background:rgba(91,155,248,.15);color:#2D61E5}.nb-ko{background:rgba(52,211,153,.15);color:#34d399}.nb-ye{background:rgba(192,132,252,.15);color:#c084fc}
 .bar-wrap { display:inline-flex; width:70px; height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; vertical-align:middle; margin-left:8px; }
 .bar-fill { height:100%; border-radius:2px; }
 
@@ -503,7 +503,7 @@ tbody tr:last-child td { border-bottom:none; }
 .hide-amt-btn:hover { background:var(--surface3); color:var(--text); }
 .hide-amt-btn.active { background:rgba(229,45,45,.15); border-color:rgba(229,45,45,.3); color:#E52D2D; }
 /* ── 미니 수익 달력 ── */
-.profit-cal-wrap { background:var(--surface); border:1.5px solid rgba(45,97,229,.3); border-radius:12px; padding:10px; margin-bottom:8px; }
+.profit-cal-wrap { background:var(--surface); border:1.5px solid rgba(91,155,248,.3); border-radius:12px; padding:10px; margin-bottom:8px; }
 .profit-cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
 .profit-cal-nav button { background:var(--surface2); border:1px solid var(--border); color:var(--text2); width:24px; height:24px; border-radius:6px; font-size:13px; cursor:pointer; }
 .profit-cal-month { font-family:"DM Mono",monospace; font-size:12px; font-weight:700; color:var(--accent2); }
@@ -519,7 +519,30 @@ tbody tr:last-child td { border-bottom:none; }
 /* ── has-profit 상단 달력 점 ── */
 .cal-day.has-profit { position:relative; }
 .cal-day.has-profit::before { content:''; position:absolute; bottom:2px; left:calc(50% + 4px); transform:translateX(-50%); width:3px; height:3px; border-radius:50%; background:#E52D2D; z-index:2; }
-/* ── 일간 수익 저장 버튼 ── */
+/* ── 추가 예수금 카드 ── */
+.deposit-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px 18px; margin-bottom:12px; }
+.deposit-card-title { font-size:10px; font-weight:700; color:var(--text3); letter-spacing:.3px; text-transform:uppercase; margin-bottom:10px; }
+.deposit-row { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.deposit-total { font-family:'DM Mono',monospace; font-size:19px; font-weight:700; color:var(--text); }
+.deposit-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+.deposit-hist-btn { font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; cursor:pointer; background:var(--surface2); border:1px solid var(--border); color:var(--text2); white-space:nowrap; }
+/* ── 추가 예수금 저장 버튼 ── */
+.deposit-save-btn { width:100%; padding:13px; color:#fff; font-family:inherit; font-size:14px; font-weight:800; border:none; border-radius:12px; cursor:pointer; margin-top:8px; letter-spacing:-.2px; transition:all .2s; }
+.deposit-save-btn.in  { background:linear-gradient(135deg,#22c55e,#16a34a); box-shadow:0 4px 20px rgba(34,197,94,.3); }
+.deposit-save-btn.out { background:linear-gradient(135deg,#E52D2D,#b91c1c); box-shadow:0 4px 20px rgba(229,45,45,.3); }
+.deposit-save-btn:hover { transform:translateY(-1px); }
+/* 예수금 달력 */
+.dep-cal-wrap { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:10px; margin-bottom:8px; }
+.dep-cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.dep-cal-nav button { background:none; border:none; color:var(--text2); font-size:18px; cursor:pointer; width:28px; height:28px; border-radius:6px; }
+.dep-cal-nav button:hover { background:var(--surface3); }
+.dep-cal-month { font-size:13px; font-weight:700; color:var(--text); }
+.dep-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+.dep-cal-grid .ch { font-size:9px; color:var(--text3); padding:2px 0; font-weight:700; }
+.dep-cal-grid .dd { font-size:11px; padding:5px 2px; border-radius:5px; cursor:pointer; color:var(--text2); }
+.dep-cal-grid .dd:hover { background:var(--surface3); }
+.dep-cal-grid .dd.dsel { background:var(--accent2); color:#0a0e1a; font-weight:700; }
+.dep-cal-grid .dd.dtoday { border:1px solid var(--accent); color:var(--accent); }
 .profit-save-btn { width:100%; padding:13px; background:linear-gradient(135deg,#5b8fd4,#3a6abf); color:#fff; font-family:inherit; font-size:14px; font-weight:800; border:none; border-radius:12px; cursor:pointer; margin-top:8px; letter-spacing:-.2px; box-shadow:0 4px 20px rgba(91,143,212,.3); transition:all .2s; }
 .profit-save-btn:hover { transform:translateY(-1px); box-shadow:0 6px 26px rgba(91,143,212,.4); }
 
@@ -705,7 +728,7 @@ body.light-mode .hist-entry {
 
     <!-- 일간 수익 실현 금액 -->
     <div class="broker-hdr" style="margin-top:14px">
-      <span class="broker-badge" style="background:rgba(45,97,229,.12);color:#2D61E5;border:1px solid rgba(45,97,229,.3)">일간 수익 실현 금액</span>
+      <span class="broker-badge" style="background:rgba(91,155,248,.12);color:#2D61E5;border:1px solid rgba(91,155,248,.3)">일간 수익 실현 금액</span>
       <div class="broker-line"></div>
     </div>
     <!-- 미니 수익 달력 -->
@@ -726,10 +749,38 @@ body.light-mode .hist-entry {
         수익 금액
         <button onclick="clearDailyProfit()" title="이 날짜의 수익을 0으로 초기화" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(229,45,45,.18);border:1px solid rgba(229,45,45,.4);color:#E52D2D;font-size:11px;font-weight:900;cursor:pointer;line-height:1;padding:0;flex-shrink:0;transition:all .15s" onmouseover="this.style.background='rgba(229,45,45,.35)'" onmouseout="this.style.background='rgba(229,45,45,.18)'">✕</button>
       </span>
-      <input class="acc-input" type="text" inputmode="numeric" placeholder="0" id="profitInput" oninput="onNum(this)" style="border-color:rgba(45,97,229,.3)">
+      <input class="acc-input" type="text" inputmode="numeric" placeholder="0" id="profitInput" oninput="onNum(this)" style="border-color:rgba(91,155,248,.3)">
     </div>
     <button class="profit-save-btn" onclick="saveDailyProfit()">💰 일간 수익 저장</button>
     <div class="save-msg" id="profitMsg"></div>
+
+    <!-- 추가 예수금 투입 -->
+    <div class="broker-hdr" style="margin-top:18px">
+      <span class="broker-badge" style="background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3)">추가 예수금 투입</span>
+      <div class="broker-line"></div>
+    </div>
+    <!-- 예수금 달력 -->
+    <div class="dep-cal-wrap">
+      <div class="dep-cal-nav">
+        <button onclick="depCalMove(-1)">&#8249;</button>
+        <div class="dep-cal-month" id="depCalMonth"></div>
+        <button onclick="depCalMove(1)">&#8250;</button>
+      </div>
+      <div class="dep-cal-grid" id="depCalGrid"></div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;color:var(--text3)">선택</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#22c55e" id="depDateLbl">날짜를 선택하세요</span>
+      </div>
+    </div>
+    <div class="acc-row" style="margin-bottom:5px">
+      <span class="acc-name" style="color:#22c55e">금액</span>
+      <input class="acc-input" type="text" inputmode="numeric" placeholder="0" id="depInput" oninput="onNum(this)" style="border-color:rgba(34,197,94,.3)">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="deposit-save-btn in" onclick="saveDeposit('in')">📥 입금</button>
+      <button class="deposit-save-btn out" onclick="saveDeposit('out')">📤 출금</button>
+    </div>
+    <div class="save-msg" id="depMsg"></div>
 
   </div></div>
 
@@ -755,14 +806,13 @@ body.light-mode .hist-entry {
         <div class="month-lbl" id="mlbl"></div>
         <button class="nav" onclick="chMon(1)">&#8250;</button>
 
-        <!-- 날짜 뷰어 -->
-        <div class="day-nav" id="dayNav">
-          <button class="nav" onclick="chDay(-1)" id="dayPrev">&#8249;</button>
-          <div class="day-lbl" id="dayLbl">날짜 선택</div>
-          <button class="nav" onclick="chDay(1)" id="dayNext">&#8250;</button>
-        </div>
-
         <div class="month-row-right">
+          <!-- 날짜 뷰어 — 우측 정렬 -->
+          <div class="day-nav" id="dayNav">
+            <button class="nav" onclick="chDay(-1)" id="dayPrev">&#8249;</button>
+            <div class="day-lbl" id="dayLbl" style="font-weight:800">날짜 선택</div>
+            <button class="nav" onclick="chDay(1)" id="dayNext">&#8250;</button>
+          </div>
           <button class="hide-amt-btn" id="hideAmtBtn" onclick="toggleHideAmount()">👁 금액 감추기</button>
           <button class="sync-btn" onclick="pullFromSheets()">↻ 동기화</button>
           <button class="pdf-btn" onclick="exportPDF()">
@@ -772,6 +822,17 @@ body.light-mode .hist-entry {
       </div>
 
       <div class="kpi-grid" id="kpiGrid"></div>
+      <!-- 추가 예수금 카드 -->
+      <div class="deposit-card" id="depositCard">
+        <div class="deposit-card-title">추가 예수금 투입 현황</div>
+        <div class="deposit-row">
+          <div>
+            <div class="deposit-total" id="depTotalDisp">₩0</div>
+            <div class="deposit-sub" id="depSubDisp">입금 0건 / 출금 0건</div>
+          </div>
+          <button class="deposit-hist-btn" onclick="showDepositPopup()">📋 내역 보기</button>
+        </div>
+      </div>
       <div class="broker-pills" id="brokerPills"></div>
 
       <div class="chart-row">
@@ -790,10 +851,9 @@ body.light-mode .hist-entry {
         <!-- 일별 증감 -->
         <div class="cbox">
           <div class="cbox-hdr">
-            <div class="cbox-title">일별 증감 <span class="period" id="cperiod2"></span></div>
+            <div class="cbox-title">월간 실현 수익 추이 <span class="period" id="cperiod2"></span></div>
             <div class="chart-type-btns">
-              <button class="ct-btn on" onclick="setChartType('delta','bar',this)">막대</button>
-              <button class="ct-btn" onclick="setChartType('delta','line',this)">선 도표</button>
+              <button class="ct-btn" id="deltaBarBtn" onclick="toggleDeltaBar(this)">당일 막대</button>
               <button class="ct-btn all-days-btn" id="allDaysBtn2" onclick="toggleAllDays()">전체 일자</button>
             </div>
           </div>
@@ -902,7 +962,7 @@ window.addEventListener('resize', function(){
 });
 var N=14;
 var DNAMES=['거래 1','거래 2','20% 1','20% 2','문자','공짜 1','공짜 2','공짜 3','공짜 4','공짜 5','토스','거래','20%','공짜'];
-var COLORS=['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fed7aa','#fdba74','#fb923c','#f97316','#fb8c1a','#fca040','#2D61E5','#34d399','#6ee7b7','#a7f3d0'];
+var COLORS=['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fed7aa','#fdba74','#fb923c','#f97316','#fb8c1a','#fca040','#5B9BF8','#34d399','#6ee7b7','#a7f3d0'];
 var BROKERS=[
   {name:'키움증권',cls:'ki',nb:'nb-ki',hcls:'hbki',indices:[0,1,2,3,4,5,6,7,8,9]},
   {name:'토스증권',cls:'to',nb:'nb-to',hcls:'hbto',indices:[10]},
@@ -1053,6 +1113,7 @@ function pullFromSheets(){
       if(result.meta){
         try{ if(result.meta.dailyProfits) dailyProfits=JSON.parse(result.meta.dailyProfits); }catch(e){}
         try{ if(result.meta.loanAmount) LOAN_FIXED=Number(result.meta.loanAmount)||200000000; }catch(e){}
+        try{ if(result.meta.depositLogs) depositLogs=JSON.parse(result.meta.depositLogs); }catch(e){}
       }
       var cnt=Object.keys(clean).length;
       setDot('ok', cnt+'개 기록');
@@ -1062,7 +1123,7 @@ function pullFromSheets(){
       setDot('err','연결 실패');
     }
     dashEntryIdx=-1;
-    buildCal(); renderDash(); renderHist();
+    buildCal(); renderDash(); renderHist(); renderDepositCard();
     var ent=getMonthEntries();
     setTimeout(function(){
       requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });
@@ -1310,7 +1371,7 @@ function drawKpi(entries){
       '<div class="kpi wide" style="grid-column:span 2"><div class="kpi-lbl">이 달 계좌 데이터 없음</div><div class="kpi-val flat" style="font-size:15px">왼쪽에서 날짜를 선택하고 금액을 입력하세요</div></div>'+
       '<div class="kpi" style="grid-column:span 1"><div class="kpi-lbl">누적 복리 수익</div><div class="kpi-val flat" style="font-size:13px">계좌 데이터 필요</div></div>'+
       '<div class="kpi" style="grid-column:span 1">'+
-        '<div class="kpi-glow" style="background:rgba(45,97,229,.25);pointer-events:none"></div>'+
+        '<div class="kpi-glow" style="background:rgba(91,155,248,.25);pointer-events:none"></div>'+
         '<div class="kpi-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:4px">'+
           '<span>'+profitLbl2+'</span>'+
           '<button id="pPeriodBtn" style="'+(profitPeriod==='month'?btnOff2:btnOn2)+'">'+profitBtnTxt2+'</button>'+
@@ -1382,7 +1443,7 @@ function drawKpi(entries){
   var btnOff=btnBase+'background:var(--surface3);color:var(--text2);border-color:var(--border2);';
 
   /* 전일 대비 + 당일 수익 실현: 라벨 한 줄 → 금액 한 줄 */
-  var dDayColor=dDay>0?'#E52D2D':dDay<0?'#2D61E5':'var(--text2)';
+  var dDayColor=dDay>0?'#E52D2D':dDay<0?'#5B9BF8':'var(--text2)';
   var dDayHtml=
     '<div style="margin-top:8px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'+
@@ -1408,7 +1469,7 @@ function drawKpi(entries){
   var showN=Math.min(3,deltaRevExCur.length);
   for(var pi=0;pi<showN;pi++){
     var ditem=deltaRevExCur[pi];
-    var dcol=ditem.val>0?'#E52D2D':ditem.val<0?'#2D61E5':'var(--text2)';
+    var dcol=ditem.val>0?'#E52D2D':ditem.val<0?'#5B9BF8':'var(--text2)';
     previewHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)">'+
       '<span style="font-size:10px;color:var(--text3)">'+ditem.date.slice(5)+'</span>'+
       '<span style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+dcol+'">'+fmtD(ditem.val)+'</span>'+
@@ -1436,7 +1497,7 @@ function drawKpi(entries){
       previewHtml+
     '</div>'+
     '<div class="kpi">'+
-      '<div class="kpi-glow" style="background:rgba(45,97,229,.25);pointer-events:none"></div>'+
+      '<div class="kpi-glow" style="background:rgba(91,155,248,.25);pointer-events:none"></div>'+
       '<div class="kpi-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:4px">'+
         '<span>'+profitLbl+'</span>'+
         '<button id="pPeriodBtn" style="'+(profitPeriod==='month'?btnOff:btnOn)+'">'+profitBtnTxt+'</button>'+
@@ -1532,18 +1593,23 @@ function showDeltaPopup(entries, deltaRev){
     rowsHtml='<div style="text-align:center;padding:24px 0;color:var(--text3);font-size:13px">이 달 기록 없음</div>';
   } else {
     rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;padding:8px 16px;border-bottom:1px solid var(--border);text-transform:uppercase"><span>날짜</span><span style="text-align:right">전일 대비</span><span style="text-align:right">누적합계</span></div>';
+    /* 최신순(deltaRev 그대로) 표시 — 누적은 역산하여 표시 */
+    /* 먼저 오래된 순 누적을 계산해두고, 최신순으로 뒤집어 표기 */
+    var fwdRows=deltaRev.slice().reverse(); /* 오래된 순 */
+    var runningArr=[];
     var running=0;
-    var fwdRows=deltaRev.slice().reverse();
-    for(var ri=0;ri<fwdRows.length;ri++){
-      var item=fwdRows[ri];
-      running+=item.val;
-      var dcol=item.val>0?'#E52D2D':item.val<0?'#2D61E5':'var(--text2)';
-      var rcol=running>0?'#E52D2D':running<0?'#2D61E5':'var(--text2)';
-      var bg=ri%2===0?'rgba(255,255,255,.02)':'transparent';
-      rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;padding:9px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--text2)">'+item.date.slice(5)+'</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+dcol+';text-align:right">'+fmtD(item.val)+'</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+rcol+';text-align:right">'+fmtD(running)+'</span></div>';
+    for(var ri=0;ri<fwdRows.length;ri++){ running+=fwdRows[ri].val; runningArr.push(running); }
+    /* 최신순으로 출력 */
+    for(var ni=fwdRows.length-1;ni>=0;ni--){
+      var item=fwdRows[ni];
+      var cumVal=runningArr[ni];
+      var dcol=item.val>0?'#E52D2D':item.val<0?'#5B9BF8':'var(--text2)';
+      var rcol=cumVal>0?'#E52D2D':cumVal<0?'#5B9BF8':'var(--text2)';
+      var bg=(fwdRows.length-1-ni)%2===0?'rgba(255,255,255,.02)':'transparent';
+      rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;padding:9px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--text2)">'+item.date.slice(5)+'</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+dcol+';text-align:right">'+fmtD(item.val)+'</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+rcol+';text-align:right">'+fmtD(cumVal)+'</span></div>';
     }
     var totalDelta=0; for(var ti=0;ti<fwdRows.length;ti++) totalDelta+=fwdRows[ti].val;
-    var tcol=totalDelta>0?'#E52D2D':totalDelta<0?'#2D61E5':'var(--text2)';
+    var tcol=totalDelta>0?'#E52D2D':totalDelta<0?'#5B9BF8':'var(--text2)';
     rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;padding:10px 16px;background:rgba(200,160,106,.08);border-top:1px solid rgba(200,160,106,.2)"><span style="font-size:12px;font-weight:700;color:var(--accent)">합계</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:800;color:'+tcol+';text-align:right">'+fmtD(totalDelta)+'</span><span></span></div>';
   }
   var overlay=document.createElement('div');
@@ -1662,69 +1728,122 @@ function drawTotalChart(entries){
   }
 }
 function drawDeltaChart(entries){
-  var r=getCtx('cvDelta'),ctx=r.ctx,w=r.w,h=r.h,type=chartTypes['delta'];
+  var r=getCtx('cvDelta'),ctx=r.ctx,w=r.w,h=r.h;
   document.getElementById('dleg').innerHTML='';
-
-  var deltas=[],dlabs=[];
-  if(showAllDays){
-    var fullDays=getFullWeekdayEntries();
-    for(var i=1;i<fullDays.length;i++){
-      var cur=fullDays[i][1], prv=fullDays[i-1][1];
-      dlabs.push(fullDays[i][0].slice(8));
-      if(cur&&prv) deltas.push(getTotal(cur)-getTotal(prv));
-      else deltas.push(null);
-    }
-  } else {
-    if(entries.length<2){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('2일 이상 데이터 필요',w/2,h/2);return;}
-    for(var ei=1;ei<entries.length;ei++){deltas.push(getTotal(entries[ei][1])-getTotal(entries[ei-1][1]));dlabs.push(entries[ei][0].slice(8));}
+  var mm=padZ(dashMonth+1),ym=dashYear+'-'+mm;
+  var profitKeys=[];
+  for(var k in dailyProfits){
+    if(dailyProfits.hasOwnProperty(k)&&k.indexOf(ym)===0&&Number(dailyProfits[k])!==0) profitKeys.push(k);
   }
-
-  var validDeltas=deltas.filter(function(v){return v!==null;});
-  if(validDeltas.length<1){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('2일 이상 데이터 필요',w/2,h/2);return;}
-
-  var mxA=1;for(var j=0;j<validDeltas.length;j++) if(Math.abs(validDeltas[j])>mxA) mxA=Math.abs(validDeltas[j]);
-  var pT=10,pB=24,pL=6,pR=6,cw=w-pL-pR,ch=h-pT-pB,midY=pT+ch/2;
-  var maxBarH=ch/2*0.85, step=Math.max(1,Math.floor(deltas.length/8));
-  var nn=deltas.length;
-  ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pL,midY);ctx.lineTo(w-pR,midY);ctx.stroke();
-  var upC='rgba(229,45,45,.85)', dnC='rgba(45,97,229,.85)';
-  if(type==='bar'){
-    var bw=Math.max(4,cw/nn-2);
-    for(var k=0;k<nn;k++){
-      var x=pL+(k/nn)*cw+(cw/nn-bw)/2;
-      if(deltas[k]===null){
-        ctx.strokeStyle='rgba(90,88,120,.25)'; ctx.lineWidth=1; ctx.setLineDash([2,3]);
-        ctx.beginPath(); ctx.moveTo(x+bw/2,pT+4); ctx.lineTo(x+bw/2,h-pB-4); ctx.stroke();
-        ctx.setLineDash([]);
-      } else {
-        var bh=Math.max(2,(Math.abs(deltas[k])/mxA)*maxBarH);
-        var isUp=deltas[k]>=0;
-        ctx.fillStyle=isUp?upC:dnC;
-        if(ctx.roundRect){ctx.beginPath();if(isUp)ctx.roundRect(x,midY-bh,bw,bh,[3,3,0,0]);else ctx.roundRect(x,midY,bw,bh,[0,0,3,3]);ctx.fill();}
-        else{if(isUp)ctx.fillRect(x,midY-bh,bw,bh);else ctx.fillRect(x,midY,bw,bh);}
-      }
-      if(k%step===0||k===nn-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(dlabs[k],x+bw/2,h-6);}
+  profitKeys.sort();
+  var chartVals,chartLabs;
+  if(showAllDays){
+    var fullDays=getMonthWeekdays(dashYear,dashMonth);
+    var running=0; chartVals=[]; chartLabs=[];
+    for(var fi=0;fi<fullDays.length;fi++){
+      var fd=fullDays[fi]; chartLabs.push(fd.slice(8));
+      if(dailyProfits[fd]&&Number(dailyProfits[fd])!==0){ running+=Number(dailyProfits[fd]); chartVals.push(running); }
+      else { chartVals.push(profitKeys.length&&fd<=profitKeys[profitKeys.length-1]?running:null); }
     }
   } else {
-    var xf=function(i){return pL+(i/(nn-1||1))*cw;};
-    var yf=function(v){return midY-((v)/mxA)*maxBarH;};
-    ctx.beginPath();var started=false;
-    for(var l=0;l<nn;l++){
-      if(deltas[l]===null){started=false;continue;}
-      if(!started){ctx.moveTo(xf(l),yf(deltas[l]));started=true;}else ctx.lineTo(xf(l),yf(deltas[l]));
-    }
-    ctx.strokeStyle='rgba(200,160,106,.75)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
-    for(var m=0;m<nn;m++){
-      if(deltas[m]!==null){
-        ctx.beginPath();ctx.arc(xf(m),yf(deltas[m]),3.5,0,Math.PI*2);
-        ctx.fillStyle=deltas[m]>=0?'#E52D2D':'#2D61E5';ctx.fill();
+    if(!profitKeys.length){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('실현 수익 데이터 없음',w/2,h/2);return;}
+    chartVals=[]; chartLabs=[]; var cum=0;
+    for(var pi=0;pi<profitKeys.length;pi++){ cum+=Number(dailyProfits[profitKeys[pi]]); chartVals.push(cum); chartLabs.push(profitKeys[pi].slice(8)); }
+  }
+  var validVals=chartVals.filter(function(v){return v!==null;});
+  if(!validVals.length){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('실현 수익 데이터 없음',w/2,h/2);return;}
+
+  /* ── 당일 막대 모드 ── */
+  if(profitBarMode){
+    /* 일별 원금액 배열 (누적 아님) */
+    var barVals=[], barLabs=[];
+    if(showAllDays){
+      var fullDays2=getMonthWeekdays(dashYear,dashMonth);
+      for(var bi2=0;bi2<fullDays2.length;bi2++){
+        var fd2=fullDays2[bi2];
+        barLabs.push(fd2.slice(8));
+        barVals.push(dailyProfits[fd2]?Number(dailyProfits[fd2]):null);
       }
-      if(m%step===0||m===nn-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(dlabs[m],xf(m),h-6);}
+    } else {
+      for(var bpi=0;bpi<profitKeys.length;bpi++){
+        barVals.push(Number(dailyProfits[profitKeys[bpi]]));
+        barLabs.push(profitKeys[bpi].slice(8));
+      }
+    }
+    var validBar=barVals.filter(function(v){return v!==null&&v!==0;});
+    var bmxA=1; for(var bj=0;bj<validBar.length;bj++) if(Math.abs(validBar[bj])>bmxA) bmxA=Math.abs(validBar[bj]);
+    var bpT=10,bpB=26,bpL=6,bpR=6,bcw=w-bpL-bpR,bch=h-bpT-bpB,bmidY=bpT+bch/2;
+    var bmaxH=bch/2*0.85, bnn=barVals.length, bstep=Math.max(1,Math.floor(bnn/8));
+    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(bpL,bmidY);ctx.lineTo(w-bpR,bmidY);ctx.stroke();
+    ctx.setLineDash([]);
+    var bbw=Math.max(4,bcw/bnn-2);
+    for(var bk=0;bk<bnn;bk++){
+      var bx=bpL+(bk/bnn)*bcw+(bcw/bnn-bbw)/2;
+      if(barVals[bk]===null||barVals[bk]===0){
+        if(bk%bstep===0||bk===bnn-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(barLabs[bk],bx+bbw/2,h-8);}
+        continue;
+      }
+      var bbh=Math.max(2,(Math.abs(barVals[bk])/bmxA)*bmaxH);
+      var bisUp=barVals[bk]>0;
+      var bg2=ctx.createLinearGradient(0,bisUp?bmidY-bbh:bmidY,0,bisUp?bmidY:bmidY+bbh);
+      if(bisUp){bg2.addColorStop(0,'rgba(229,45,45,.9)');bg2.addColorStop(1,'rgba(229,45,45,.3)');}
+      else{bg2.addColorStop(0,'rgba(91,155,248,.3)');bg2.addColorStop(1,'rgba(91,155,248,.9)');}
+      ctx.fillStyle=bg2;
+      if(ctx.roundRect){
+        ctx.beginPath();
+        if(bisUp) ctx.roundRect(bx,bmidY-bbh,bbw,bbh,[3,3,0,0]);
+        else ctx.roundRect(bx,bmidY,bbw,bbh,[0,0,3,3]);
+        ctx.fill();
+      } else {
+        if(bisUp) ctx.fillRect(bx,bmidY-bbh,bbw,bbh);
+        else ctx.fillRect(bx,bmidY,bbw,bbh);
+      }
+      if(bk%bstep===0||bk===bnn-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(barLabs[bk],bx+bbw/2,h-8);}
+    }
+    document.getElementById('dleg').innerHTML=
+      '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:2px;background:#E52D2D"></div>당일 수익 +</div>'+
+      '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:2px;background:#5B9BF8"></div>당일 수익 -</div>';
+    return;
+  }
+  var mn=validVals[0],mx=validVals[0];
+  for(var j=0;j<validVals.length;j++){if(validVals[j]<mn)mn=validVals[j];if(validVals[j]>mx)mx=validVals[j];}
+  mn=Math.min(mn,0); mx=Math.max(mx,0);
+  var pad=Math.max((mx-mn)*0.25,Math.abs(mx||mn)*0.05||1000);
+  var mnA=mn-pad,mxA=mx+pad,rng=mxA-mnA||1;
+  var pT=16,pB=26,pL=10,pR=10,cw=w-pL-pR,ch=h-pT-pB;
+  var n=chartVals.length, step=Math.max(1,Math.floor(n/8));
+  var zeroY=pT+ch-((0-mnA)/rng)*ch;
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pL,zeroY);ctx.lineTo(w-pR,zeroY);ctx.stroke();
+  ctx.setLineDash([]);
+  var xf=function(i){return pL+(i/(n-1||1))*cw;};
+  var yf=function(v){return pT+ch-((v-mnA)/rng)*ch;};
+  var firstV=null,lastV=null;
+  for(var fv=0;fv<n;fv++){if(chartVals[fv]!==null){firstV=fv;break;}}
+  for(var lv=n-1;lv>=0;lv--){if(chartVals[lv]!==null){lastV=lv;break;}}
+  if(firstV!==null){
+    var gUp=ctx.createLinearGradient(0,pT,0,zeroY);
+    gUp.addColorStop(0,'rgba(229,45,45,.18)');gUp.addColorStop(1,'rgba(229,45,45,0)');
+    ctx.beginPath();var st=false;
+    for(var l=0;l<n;l++){if(chartVals[l]===null){st=false;continue;}if(!st){ctx.moveTo(xf(l),yf(chartVals[l]));st=true;}else ctx.lineTo(xf(l),yf(chartVals[l]));}
+    ctx.lineTo(xf(lastV),zeroY);ctx.lineTo(xf(firstV),zeroY);ctx.closePath();ctx.fillStyle=gUp;ctx.fill();
+    var gDn=ctx.createLinearGradient(0,zeroY,0,pT+ch);
+    gDn.addColorStop(0,'rgba(91,155,248,0)');gDn.addColorStop(1,'rgba(91,155,248,.18)');
+    ctx.beginPath();st=false;
+    for(var l2=0;l2<n;l2++){if(chartVals[l2]===null){st=false;continue;}if(!st){ctx.moveTo(xf(l2),yf(chartVals[l2]));st=true;}else ctx.lineTo(xf(l2),yf(chartVals[l2]));}
+    ctx.lineTo(xf(lastV),zeroY);ctx.lineTo(xf(firstV),zeroY);ctx.closePath();ctx.fillStyle=gDn;ctx.fill();
+    ctx.beginPath();st=false;
+    for(var m=0;m<n;m++){if(chartVals[m]===null){st=false;continue;}if(!st){ctx.moveTo(xf(m),yf(chartVals[m]));st=true;}else ctx.lineTo(xf(m),yf(chartVals[m]));}
+    ctx.strokeStyle='rgba(200,160,106,.85)';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+    for(var nn2=0;nn2<n;nn2++){
+      if(chartVals[nn2]!==null){var col=chartVals[nn2]>=0?'#E52D2D':'#5B9BF8';ctx.beginPath();ctx.arc(xf(nn2),yf(chartVals[nn2]),3.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();}
+      if(nn2%step===0||nn2===n-1){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(chartLabs[nn2],xf(nn2),h-8);}
     }
   }
   document.getElementById('dleg').innerHTML=
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:50%;background:rgba(229,45,45,.85)"></div>증가</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:50%;background:rgba(45,97,229,.85)"></div>감소</div>';
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:50%;background:#E52D2D"></div>누적 수익 +</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:50%;background:#5B9BF8"></div>누적 수익 -</div>';
 }
 
 function drawAccTable(entries){
@@ -1765,7 +1884,7 @@ function renderHist(){
   var c=document.getElementById('histList');
   if(!entries.length){c.innerHTML='<div class="empty">📭<br>아직 기록이 없습니다.<br>왼쪽에서 날짜를 선택하고 저장하세요.</div>';return;}
   var names=MEM.stockNames,html='';
-  var bclrs={ki:'#f59e0b',to:'#2D61E5',ko:'#34d399'};
+  var bclrs={ki:'#f59e0b',to:'#5B9BF8',ko:'#34d399'};
   for(var ei=0;ei<entries.length;ei++){
     var date=entries[ei][0],entry=entries[ei][1],total=getTotal(entry);
     var n=(entry.names&&entry.names.length===N)?entry.names:names;
@@ -1943,6 +2062,130 @@ function applyBulk(){
 }
 
 /* ═══ 일간 수익 저장 ═══ */
+/* ═══ 추가 예수금 ═══ */
+var depositLogs = {};   /* { 'YYYY-MM-DD': {amt:number, type:'in'|'out'} } */
+var depCalYear=0, depCalMonth=0, depSelectedDate='';
+
+function depCalMove(d){
+  depCalMonth+=d;
+  if(depCalMonth>11){depCalMonth=0;depCalYear++;}
+  if(depCalMonth<0){depCalMonth=11;depCalYear--;}
+  buildDepCal();
+}
+
+function buildDepCal(){
+  var y=depCalYear, m=depCalMonth, mm=padZ(m+1);
+  document.getElementById('depCalMonth').textContent=y+'년 '+(m+1)+'월';
+  var first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  var td=todayStr();
+  var html='<div class="ch">일</div><div class="ch">월</div><div class="ch">화</div><div class="ch">수</div><div class="ch">목</div><div class="ch">금</div><div class="ch">토</div>';
+  for(var i=0;i<first;i++) html+='<div></div>';
+  for(var d2=1;d2<=days;d2++){
+    var ds=y+'-'+mm+'-'+padZ(d2);
+    var cls='dd';
+    if(ds===depSelectedDate) cls+=' dsel';
+    else if(ds===td) cls+=' dtoday';
+    var hasDep=depositLogs[ds]?'●':'';
+    html+='<div class="'+cls+'" onclick="depSelectDate(\''+ds+'\')" style="position:relative">'+d2+(hasDep?'<span style="position:absolute;bottom:1px;right:1px;font-size:6px;color:#22c55e">●</span>':'')+'</div>';
+  }
+  document.getElementById('depCalGrid').innerHTML=html;
+}
+
+function depSelectDate(ds){
+  depSelectedDate=ds;
+  document.getElementById('depDateLbl').textContent=fmtDate(ds);
+  /* 기존 입력값 있으면 채워주기 */
+  var inp=document.getElementById('depInput');
+  if(depositLogs[ds]) inp.value=Math.abs(depositLogs[ds].amt).toLocaleString('ko-KR');
+  else inp.value='';
+  buildDepCal();
+}
+
+function saveDeposit(type){
+  if(!depSelectedDate){ alert('달력에서 날짜를 선택하세요.'); return; }
+  if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); return; }
+  var raw=getRaw('depInput');
+  if(!raw||raw===0){ alert('금액을 입력하세요.'); return; }
+  var amt=Number(raw);
+  depositLogs[depSelectedDate]={amt:amt, type:type};
+  var msg=document.getElementById('depMsg');
+  msg.style.color='var(--text3)'; msg.textContent='⏳ 저장 중...';
+  showLoader('예수금 Sheets 저장 중...');
+  doPost({action:'saveMeta',key:'depositLogs',value:JSON.stringify(depositLogs)},function(ok){
+    hideLoader();
+    if(ok){
+      msg.style.color='#22c55e';
+      msg.textContent='✓ '+(type==='in'?'입금':'출금')+' '+fmtW(amt)+' 저장 완료!';
+      renderDepositCard();
+      buildDepCal();
+    } else {
+      msg.style.color='#E52D2D'; msg.textContent='❌ 저장 실패';
+    }
+    setTimeout(function(){ msg.textContent=''; },3000);
+  });
+}
+
+function renderDepositCard(){
+  var total=0, inCnt=0, outCnt=0;
+  for(var k in depositLogs){
+    if(!depositLogs.hasOwnProperty(k)) continue;
+    var log=depositLogs[k];
+    if(log.type==='in'){ total+=log.amt; inCnt++; }
+    else { total-=log.amt; outCnt++; }
+  }
+  var col=total>0?'#22c55e':total<0?'#E52D2D':'var(--text)';
+  var el=document.getElementById('depTotalDisp');
+  var sub=document.getElementById('depSubDisp');
+  if(el){ el.textContent=(total>=0?'':'-')+fmtW(Math.abs(total)); el.style.color=col; }
+  if(sub) sub.textContent='입금 '+inCnt+'건 / 출금 '+outCnt+'건';
+}
+
+function showDepositPopup(){
+  var old=document.getElementById('depPopupOverlay'); if(old) old.remove();
+  var keys=Object.keys(depositLogs).sort().reverse();
+  var total=0, inSum=0, outSum=0;
+  for(var k in depositLogs){
+    if(!depositLogs.hasOwnProperty(k)) continue;
+    if(depositLogs[k].type==='in'){ inSum+=depositLogs[k].amt; total+=depositLogs[k].amt; }
+    else { outSum+=depositLogs[k].amt; total-=depositLogs[k].amt; }
+  }
+  var rowsHtml='';
+  if(!keys.length){
+    rowsHtml='<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">내역 없음</div>';
+  } else {
+    rowsHtml='<div style="display:grid;grid-template-columns:90px 60px 1fr;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;padding:8px 16px;border-bottom:1px solid var(--border);text-transform:uppercase"><span>날짜</span><span>구분</span><span style="text-align:right">금액</span></div>';
+    for(var i=0;i<keys.length;i++){
+      var ds=keys[i], log=depositLogs[ds];
+      var isIn=log.type==='in';
+      var col2=isIn?'#22c55e':'#E52D2D';
+      var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
+      rowsHtml+='<div style="display:grid;grid-template-columns:90px 60px 1fr;padding:9px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,.04)">'+
+        '<span style="font-size:12px;color:var(--text2)">'+ds.slice(5)+'</span>'+
+        '<span style="font-size:12px;font-weight:700;color:'+col2+'">'+( isIn?'입금':'출금')+'</span>'+
+        '<span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+col2+';text-align:right">'+(isIn?'+':'-')+fmtW(log.amt)+'</span>'+
+      '</div>';
+    }
+    var tcol=total>0?'#22c55e':total<0?'#E52D2D':'var(--text2)';
+    rowsHtml+='<div style="padding:10px 16px;background:rgba(200,160,106,.08);border-top:1px solid rgba(200,160,106,.2)">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;color:var(--text3)">총 입금</span><span style="font-family:\'DM Mono\',monospace;font-size:12px;color:#22c55e">+'+fmtW(inSum)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text3)">총 출금</span><span style="font-family:\'DM Mono\',monospace;font-size:12px;color:#E52D2D">-'+fmtW(outSum)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px"><span style="font-size:12px;font-weight:700;color:var(--accent)">순 잔액</span><span style="font-family:\'DM Mono\',monospace;font-size:14px;font-weight:800;color:'+tcol+'">'+(total>=0?'':'-')+fmtW(Math.abs(total))+'</span></div>'+
+    '</div>';
+  }
+  var overlay=document.createElement('div');
+  overlay.id='depPopupOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+  overlay.innerHTML='<div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:460px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0">'+
+      '<div style="font-size:14px;font-weight:700;color:var(--text)">추가 예수금 투입 내역</div>'+
+      '<button id="depPopClose" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">✕</button>'+
+    '</div>'+
+    '<div style="overflow-y:auto;flex:1">'+rowsHtml+'</div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#depPopClose').onclick=function(){ overlay.remove(); };
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
 function saveDailyProfit(){
   if(!profitSelectedDate){ alert('미니 달력에서 날짜를 선택하세요.'); return; }
   if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); return; }
@@ -2013,6 +2256,7 @@ function loadTheme(){
 
 /* ═══ 전체 일자 차트 ═══ */
 var showAllDays = false;
+var profitBarMode = false;
 var KR_HOLIDAYS = {
   '2025-01-01':1,'2025-01-28':1,'2025-01-29':1,'2025-01-30':1,
   '2025-03-01':1,'2025-05-05':1,'2025-05-06':1,'2025-06-06':1,
@@ -2045,6 +2289,13 @@ function toggleAllDays(){
   if(b2){ if(showAllDays) b2.classList.add('on'); else b2.classList.remove('on'); b2.textContent=txt; }
   var ent=getMonthEntries();
   requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });
+}
+
+function toggleDeltaBar(btn){
+  profitBarMode=!profitBarMode;
+  if(profitBarMode) btn.classList.add('on'); else btn.classList.remove('on');
+  var ent=getMonthEntries();
+  requestAnimationFrame(function(){ drawDeltaChart(ent); });
 }
 
 /* 전체 일자 모드: 당월 평일 전체 날짜 배열 생성 (데이터 없으면 null) */
@@ -2149,6 +2400,7 @@ function init(){
   selectedDate=td; calYear=parseInt(tp[0],10); calMonth=parseInt(tp[1],10)-1;
   dashYear=calYear; dashMonth=calMonth; dashEntryIdx=-1;
   pCalYear=calYear; pCalMonth2=calMonth; loadTheme(); buildCal(); buildGrid(); buildPCal(); renderDash(); renderHist();
+  depCalYear=calYear; depCalMonth=calMonth; buildDepCal(); renderDepositCard();
   initResponsive();
   if(MEM.scriptUrl){
     setDot('ing','Google Sheets 불러오는 중...');

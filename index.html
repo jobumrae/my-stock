@@ -236,7 +236,7 @@ body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; background: var(--
 .broker-pills { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
 .bpill { border-radius:12px; padding:12px 12px; border:1px solid; position:relative; overflow:hidden; }
 .bpill::before { content:''; position:absolute; inset:0; opacity:.08; }
-.bpill-lbl { font-size:9px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; margin-bottom:8px; }
+.bpill-lbl { font-size:12px; font-weight:800; letter-spacing:.3px; text-transform:uppercase; margin-bottom:8px; }
 .bpill-val { font-family:'DM Mono',monospace; font-size:19px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
 .bpill-delta { font-family:'DM Mono',monospace; font-size:14px; font-weight:700; white-space:nowrap; }
 .bpill.ki { background:var(--glow-ki); border-color:rgba(245,158,11,.25); } .bpill.ki .bpill-lbl { color:var(--ki); }
@@ -1052,6 +1052,7 @@ function pullFromSheets(){
       MEM.stockData=clean;
       if(result.meta){
         try{ if(result.meta.dailyProfits) dailyProfits=JSON.parse(result.meta.dailyProfits); }catch(e){}
+        try{ if(result.meta.loanAmount) LOAN_FIXED=Number(result.meta.loanAmount)||200000000; }catch(e){}
       }
       var cnt=Object.keys(clean).length;
       setDot('ok', cnt+'개 기록');
@@ -1294,8 +1295,31 @@ function getYearCompound(entries){
 
 function drawKpi(entries){
   var c=document.getElementById('kpiGrid');
+
+  /* entries 없는 달 — 실현 수익 카드만 표기 */
   if(!entries.length){
-    c.innerHTML='<div class="kpi wide" style="grid-column:span 4"><div class="kpi-lbl">이 달 데이터 없음</div><div class="kpi-val flat" style="font-size:15px">왼쪽에서 날짜를 선택하고 금액을 입력하세요</div></div>';
+    /* 해당 월 말일을 cutoff로 사용 */
+    var noEntCutoff=dashYear+'-'+padZ(dashMonth+1)+'-31';
+    var noEntProfit=(profitPeriod==='month')?getMonthProfit(noEntCutoff):getYearProfit(noEntCutoff);
+    var btnBase2='font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;cursor:pointer;border:1px solid;transition:all .15s;';
+    var btnOn2=btnBase2+'background:var(--accent2);color:#0a0e1a;border-color:var(--accent2);';
+    var btnOff2=btnBase2+'background:var(--surface3);color:var(--text2);border-color:var(--border2);';
+    var profitLbl2=(profitPeriod==='month'?'월간':'연간')+'증감 (실현 수익)';
+    var profitBtnTxt2=profitPeriod==='month'?'월간':'연간';
+    c.innerHTML=
+      '<div class="kpi wide" style="grid-column:span 2"><div class="kpi-lbl">이 달 계좌 데이터 없음</div><div class="kpi-val flat" style="font-size:15px">왼쪽에서 날짜를 선택하고 금액을 입력하세요</div></div>'+
+      '<div class="kpi" style="grid-column:span 1"><div class="kpi-lbl">누적 복리 수익</div><div class="kpi-val flat" style="font-size:13px">계좌 데이터 필요</div></div>'+
+      '<div class="kpi" style="grid-column:span 1">'+
+        '<div class="kpi-glow" style="background:rgba(45,97,229,.25);pointer-events:none"></div>'+
+        '<div class="kpi-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:4px">'+
+          '<span>'+profitLbl2+'</span>'+
+          '<button id="pPeriodBtn" style="'+(profitPeriod==='month'?btnOff2:btnOn2)+'">'+profitBtnTxt2+'</button>'+
+        '</div>'+
+        '<div class="kpi-val '+clsN(noEntProfit)+'">'+fmtW(noEntProfit)+'</div>'+
+        '<div class="kpi-sub flat">'+dashYear+'년 '+(profitPeriod==='month'?(dashMonth+1)+'월 ':'')+'누적</div>'+
+      '</div>';
+    var pb2=c.querySelector('#pPeriodBtn');
+    if(pb2) pb2.onclick=function(){ profitPeriod=profitPeriod==='month'?'year':'month'; drawKpi(getMonthEntries()); };
     return;
   }
   var idx=dashEntryIdx===-1?entries.length-1:dashEntryIdx;
@@ -1304,6 +1328,8 @@ function drawKpi(entries){
   var prev=idx>0?getTotal(entries[idx-1][1]):total;
   var first=getTotal(entries[0][1]);
   var dDay=total-prev;
+  var curDs=entries[idx][0];
+  var dayP=dailyProfits[curDs]?Number(dailyProfits[curDs]):0;
 
   /* 대출포함/제외 */
   var dispTotal=loanExcludeMode?total-LOAN_FIXED:total;
@@ -1312,26 +1338,41 @@ function drawKpi(entries){
     :'background:var(--surface3);border:1px solid var(--border2);color:var(--text2);';
   var loanTxt=loanExcludeMode?'대출제외':'대출포함';
 
-  /* ── 당월 누적 증감 = 전일 대비 +/- 의 idx까지 누적 합산 ── */
-  var compVal,compPct;
-  if(compoundPeriod==='month'){
-    var cumSum=0;
-    for(var ci=1;ci<=idx;ci++){
-      cumSum+=(getTotal(entries[ci][1])-getTotal(entries[ci-1][1]));
-    }
-    compVal=cumSum;
-    compPct=first&&first!==0?((compVal/first)*100).toFixed(2):'0.00';
-  } else {
-    var yc=getYearCompound(entries); compVal=yc.val; compPct=yc.pct;
-  }
-  var compLbl=(compoundPeriod==='month'?'당월 누적 증감':'연간 누적 증감')+'(복리)';
-  var compBtnTxt=compoundPeriod==='month'?'월간':'연간';
+  /* ── 누적 복리 수익 3개 값 계산 ── */
+  var curTotal = total; /* 해당일 현재 총 자산 */
 
-  /* 당일 수익 — 전일 대비와 동일 행, 우측 정렬 */
-  var curDs=entries[idx][0];
-  var dayP=dailyProfits[curDs]?Number(dailyProfits[curDs]):0;
+  /* 1) 월간 누적 증감: 해당일 총 자산 - 해당 월 첫 번째 날 총 자산 */
+  var mthCum = (function(){
+    var mm=padZ(dashMonth+1), ym=dashYear+'-'+mm, keys=[];
+    for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(ym)===0) keys.push(k);
+    keys.sort();
+    if(!keys.length) return 0;
+    /* 해당 월 첫 입력일 (curDs 이전 또는 같은 날 중 가장 앞) */
+    var base = keys[0];
+    return curTotal - getTotal(MEM.stockData[base]);
+  })();
 
-  /* 실현 수익 — 선택 일자 기준 누적 (월간/연간) */
+  /* 2) 연간 누적 증감: 해당일 총 자산 - 해당 연도 첫 번째 날 총 자산 */
+  var yrCum = (function(){
+    var ys=String(dashYear), keys=[];
+    for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(ys)===0) keys.push(k);
+    keys.sort();
+    if(!keys.length) return 0;
+    var base = keys[0];
+    return curTotal - getTotal(MEM.stockData[base]);
+  })();
+
+  /* 3) 총 누적 증감: 해당일 총 자산 - 전체 최초 입력일 총 자산 */
+  var totCum = (function(){
+    var keys=[];
+    for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)) keys.push(k);
+    keys.sort();
+    if(!keys.length) return 0;
+    var base = keys[0];
+    return curTotal - getTotal(MEM.stockData[base]);
+  })();
+
+  /* ── 월간 증감(실현 수익) ── */
   var profitVal=(profitPeriod==='month')?getMonthProfit(curDs):getYearProfit(curDs);
   var profitLbl=(profitPeriod==='month'?'월간':'연간')+'증감 (실현 수익)';
   var profitBtnTxt=profitPeriod==='month'?'월간':'연간';
@@ -1354,22 +1395,45 @@ function drawKpi(entries){
       '</div>'+
     '</div>';
 
+  /* 전일 대비 증감 기록 카드 — 당일 제외, 전날부터 최근 3건 미리보기 + 탭하면 팝업 */
+  var deltaEntries=[];
+  for(var di=1;di<entries.length;di++){
+    var dv=getTotal(entries[di][1])-getTotal(entries[di-1][1]);
+    deltaEntries.push({date:entries[di][0], val:dv});
+  }
+  /* 최신순 정렬 후 당일(curDs) 제외 */
+  var deltaRev=deltaEntries.slice().reverse();
+  var deltaRevExCur=deltaRev.filter(function(d){ return d.date!==curDs; });
+  var previewHtml='';
+  var showN=Math.min(3,deltaRevExCur.length);
+  for(var pi=0;pi<showN;pi++){
+    var ditem=deltaRevExCur[pi];
+    var dcol=ditem.val>0?'#E52D2D':ditem.val<0?'#2D61E5':'var(--text2)';
+    previewHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)">'+
+      '<span style="font-size:10px;color:var(--text3)">'+ditem.date.slice(5)+'</span>'+
+      '<span style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+dcol+'">'+fmtD(ditem.val)+'</span>'+
+    '</div>';
+  }
+  if(!deltaRevExCur.length) previewHtml='<div style="font-size:11px;color:var(--text3);margin-top:6px">기록 없음</div>';
+
   c.innerHTML=
     '<div class="kpi wide" id="kTot" style="position:relative">'+
       '<div class="kpi-glow" style="background:rgba(200,160,106,.4);pointer-events:none"></div>'+
-      '<button id="loanExclBtn" style="position:absolute;right:10px;top:12px;'+loanStyle+'font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">'+loanTxt+'</button>'+
-      '<div class="kpi-lbl" style="font-size:12px">현재 총 자산'+(loanExcludeMode?' <span style="font-size:10px;color:#E52D2D">(대출 -&#8361;200,000,000)</span>':'')+'</div>'+
+      '<div style="position:absolute;right:10px;top:12px;display:flex;gap:5px;align-items:center">'+
+        '<button id="loanExclBtn" style="'+loanStyle+'font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">'+loanTxt+'</button>'+
+        '<button id="loanEditBtn" style="background:var(--surface3);border:1px solid var(--border2);color:var(--text2);font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;cursor:pointer;white-space:nowrap;">수정</button>'+
+      '</div>'+
+      '<div class="kpi-lbl" style="font-size:12px">현재 총 자산'+(loanExcludeMode?' <span style="font-size:10px;color:#E52D2D">(대출 -₩'+LOAN_FIXED.toLocaleString('ko-KR')+')</span>':'')+'</div>'+
       '<div class="kpi-val" style="padding-right:90px">'+fmtW(dispTotal)+'</div>'+
       dDayHtml+
     '</div>'+
-    '<div class="kpi">'+
-      '<div class="kpi-glow" style="background:rgba(229,45,45,.3);pointer-events:none"></div>'+
-      '<div class="kpi-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:4px">'+
-        '<span>'+compLbl+'</span>'+
-        '<button id="cPeriodBtn" style="'+(compoundPeriod==='month'?btnOff:btnOn)+'">'+compBtnTxt+'</button>'+
+    '<div class="kpi" id="deltaHistCard" style="cursor:pointer;user-select:none" title="탭하면 전체 기록 확인">'+
+      '<div class="kpi-glow" style="background:rgba(200,160,106,.15);pointer-events:none"></div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+        '<div class="kpi-lbl" style="margin-bottom:0">전일 대비 증감 기록</div>'+
+        '<span style="font-size:10px;color:var(--text3)">▸ 전체보기</span>'+
       '</div>'+
-      '<div class="kpi-val '+clsN(compVal)+'">'+(compVal===0?'±₩0':(compVal>0?'+₩':'-₩')+Math.abs(compVal).toLocaleString('ko-KR'))+'</div>'+
-      '<div class="kpi-sub '+clsN(compVal)+'">'+(compVal>=0?'+':'')+compPct+'%</div>'+
+      previewHtml+
     '</div>'+
     '<div class="kpi">'+
       '<div class="kpi-glow" style="background:rgba(45,97,229,.25);pointer-events:none"></div>'+
@@ -1381,15 +1445,112 @@ function drawKpi(entries){
       '<div class="kpi-sub flat">'+dashYear+'년 '+(profitPeriod==='month'?(dashMonth+1)+'월 ':'')+'누적</div>'+
     '</div>';
 
-  /* 이벤트 직접 연결 */
+  /* 이벤트 연결 */
   var lb=c.querySelector('#loanExclBtn');
   if(lb) lb.onclick=function(){ loanExcludeMode=!loanExcludeMode; drawKpi(getMonthEntries()); };
-  var cb=c.querySelector('#cPeriodBtn');
-  if(cb) cb.onclick=function(){ compoundPeriod=compoundPeriod==='month'?'year':'month'; drawKpi(getMonthEntries()); };
+  var leb=c.querySelector('#loanEditBtn');
+  if(leb) leb.onclick=function(e){ e.stopPropagation(); showLoanEditPopup(); };
   var pb=c.querySelector('#pPeriodBtn');
   if(pb) pb.onclick=function(){ profitPeriod=profitPeriod==='month'?'year':'month'; drawKpi(getMonthEntries()); };
+
+  /* 전일 대비 증감 기록 카드 → 팝업 */
+  var dhCard=c.querySelector('#deltaHistCard');
+  if(dhCard) dhCard.onclick=function(){ showDeltaPopup(entries, deltaRev); };
 }
 
+function showLoanEditPopup(){
+  var old=document.getElementById('loanEditOverlay'); if(old) old.remove();
+  var overlay=document.createElement('div');
+  overlay.id='loanEditOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+  overlay.innerHTML=
+    '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border)">'+
+        '<div style="font-size:14px;font-weight:700;color:var(--text)">대출금 수정</div>'+
+        '<button id="loanEditClose" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">✕</button>'+
+      '</div>'+
+      '<div style="padding:20px 16px">'+
+        '<div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:.3px">현재 대출금</div>'+
+        '<div style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--accent);margin-bottom:16px">₩'+LOAN_FIXED.toLocaleString('ko-KR')+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">새 대출금액 입력 (숫자만)</div>'+
+        '<input id="loanAmtInput" type="text" inputmode="numeric" placeholder="200,000,000" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;padding:10px 12px;outline:none;margin-bottom:14px" value="'+LOAN_FIXED.toLocaleString('ko-KR')+'">'+
+        '<div id="loanSaveMsg" style="font-size:12px;min-height:18px;margin-bottom:10px;text-align:center"></div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button id="loanSaveBtn" style="flex:1;background:var(--accent2);color:#0a0e1a;border:none;border-radius:10px;font-size:13px;font-weight:700;padding:10px 0;cursor:pointer">저장</button>'+
+          '<button id="loanEditClose2" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:10px;font-size:13px;font-weight:700;padding:10px 0;cursor:pointer">취소</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(overlay);
+
+  /* 숫자 포맷 입력 */
+  var inp=overlay.querySelector('#loanAmtInput');
+  inp.addEventListener('input', function(){
+    var raw=this.value.replace(/[^0-9]/g,'');
+    var pos=this.selectionStart;
+    this.value=raw?Number(raw).toLocaleString('ko-KR'):'';
+    try{ this.setSelectionRange(pos,pos); }catch(e){}
+  });
+
+  /* 닫기 */
+  var closeF=function(){ overlay.remove(); };
+  overlay.querySelector('#loanEditClose').onclick=closeF;
+  overlay.querySelector('#loanEditClose2').onclick=closeF;
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) closeF(); });
+
+  /* 저장 */
+  overlay.querySelector('#loanSaveBtn').onclick=function(){
+    var raw=inp.value.replace(/[^0-9]/g,'');
+    var newAmt=Number(raw);
+    if(!raw||newAmt<0){ alert('올바른 금액을 입력하세요.'); return; }
+    var msg=overlay.querySelector('#loanSaveMsg');
+    if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); return; }
+    msg.style.color='var(--text3)'; msg.textContent='⏳ 저장 중...';
+    doPost({action:'saveMeta',key:'loanAmount',value:String(newAmt)},function(ok){
+      if(ok){
+        LOAN_FIXED=newAmt;
+        msg.style.color='#22c55e'; msg.textContent='✓ 저장 완료 (₩'+newAmt.toLocaleString('ko-KR')+')';
+        drawKpi(getMonthEntries());
+        setTimeout(function(){ overlay.remove(); },1200);
+      } else {
+        msg.style.color='#E52D2D'; msg.textContent='❌ 저장 실패. 다시 시도하세요.';
+      }
+    });
+  };
+}
+
+function showDeltaPopup(entries, deltaRev){
+  var old=document.getElementById('deltaPopupOverlay');
+  if(old) old.remove();
+  var yr=dashYear, mn=dashMonth+1;
+  var title=yr+'년 '+mn+'월 전일 대비 증감 기록';
+  var rowsHtml='';
+  if(!deltaRev.length){
+    rowsHtml='<div style="text-align:center;padding:24px 0;color:var(--text3);font-size:13px">이 달 기록 없음</div>';
+  } else {
+    rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;padding:8px 16px;border-bottom:1px solid var(--border);text-transform:uppercase"><span>날짜</span><span style="text-align:right">전일 대비</span><span style="text-align:right">누적합계</span></div>';
+    var running=0;
+    var fwdRows=deltaRev.slice().reverse();
+    for(var ri=0;ri<fwdRows.length;ri++){
+      var item=fwdRows[ri];
+      running+=item.val;
+      var dcol=item.val>0?'#E52D2D':item.val<0?'#2D61E5':'var(--text2)';
+      var rcol=running>0?'#E52D2D':running<0?'#2D61E5':'var(--text2)';
+      var bg=ri%2===0?'rgba(255,255,255,.02)':'transparent';
+      rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;padding:9px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--text2)">'+item.date.slice(5)+'</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+dcol+';text-align:right">'+fmtD(item.val)+'</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+rcol+';text-align:right">'+fmtD(running)+'</span></div>';
+    }
+    var totalDelta=0; for(var ti=0;ti<fwdRows.length;ti++) totalDelta+=fwdRows[ti].val;
+    var tcol=totalDelta>0?'#E52D2D':totalDelta<0?'#2D61E5':'var(--text2)';
+    rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr 1fr;padding:10px 16px;background:rgba(200,160,106,.08);border-top:1px solid rgba(200,160,106,.2)"><span style="font-size:12px;font-weight:700;color:var(--accent)">합계</span><span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:800;color:'+tcol+';text-align:right">'+fmtD(totalDelta)+'</span><span></span></div>';
+  }
+  var overlay=document.createElement('div');
+  overlay.id='deltaPopupOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+  overlay.innerHTML='<div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:460px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6)"><div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0"><div style="font-size:14px;font-weight:700;color:var(--text)">'+title+'</div><button id="deltaPopupClose" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">✕</button></div><div style="overflow-y:auto;flex:1">'+rowsHtml+'</div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#deltaPopupClose').onclick=function(){ overlay.remove(); };
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+}
 function drawBrokerPills(entries){
   var c=document.getElementById('brokerPills');
   if(!entries.length){c.innerHTML='';return;}

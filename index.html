@@ -276,20 +276,21 @@ canvas { width:100%!important; display:block; height:auto!important; }
 .tbox-hdr { padding:12px 18px 10px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
 .tbox-title { font-size:13px; font-weight:700; color:var(--text); }
 .tbox-sub { font-size:12px; font-weight:700; color:var(--accent2); font-family:'DM Mono',monospace; }
-table { width:100%; border-collapse:collapse; font-size:13px; }
-thead th { padding:9px 16px; text-align:left; font-size:10px; font-weight:700; color:var(--text3); letter-spacing:.5px; text-transform:uppercase; border-bottom:1px solid var(--border); background:var(--bg2); }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+thead th { padding:9px 16px; text-align:left; font-size:13px; font-weight:700; color:var(--text3); letter-spacing:.3px; text-transform:uppercase; border-bottom:1px solid var(--border); background:var(--bg2); white-space:nowrap; }
 thead th:not(:first-child) { text-align:right; }
-tbody td { padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; }
-tbody td:not(:first-child) { text-align:right; font-family:'DM Mono',monospace; font-size:12px; }
+tbody td { padding:11px 16px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+tbody td:not(:first-child) { text-align:right; font-family:'DM Mono',monospace; font-size:15px; }
 tbody tr:hover td { background:var(--surface2); }
 tbody tr:last-child td { border-bottom:none; }
-.broker-sep td { background:var(--bg2)!important; padding:7px 16px!important; }
-.broker-sep td:first-child { font-size:11px; font-weight:700; }
-.total-row td { background:rgba(200,160,106,.08)!important; font-weight:700; font-family:'DM Mono',monospace; font-size:13px; color:var(--accent); border-top:1px solid rgba(200,160,106,.2); }
-.nb { font-size:10px; font-weight:800; padding:2px 7px; border-radius:8px; }
+.broker-sep td { background:var(--bg2)!important; padding:8px 16px!important; }
+.broker-sep td:first-child { font-size:13px; font-weight:700; }
+.total-row td { background:rgba(200,160,106,.08)!important; font-weight:700; font-family:'DM Mono',monospace; font-size:15px; color:var(--accent); border-top:1px solid rgba(200,160,106,.2); }
+.nb { font-size:12px; font-weight:800; padding:3px 9px; border-radius:8px; white-space:nowrap; }
 .nb-ki{background:rgba(245,158,11,.15);color:#f59e0b}.nb-to{background:rgba(91,155,248,.15);color:#2D61E5}.nb-ko{background:rgba(52,211,153,.15);color:#34d399}.nb-ye{background:rgba(192,132,252,.15);color:#c084fc}
-.bar-wrap { display:inline-flex; width:70px; height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; vertical-align:middle; margin-left:8px; }
-.bar-fill { height:100%; border-radius:2px; }
+/* 가로 바 완전 제거 */
+.bar-wrap { display:none !important; }
+.bar-fill { display:none !important; }
 
 /* ── History ── */
 .hist-list { display:flex; flex-direction:column; gap:12px; }
@@ -476,19 +477,47 @@ tbody tr:last-child td { border-bottom:none; }
 
 /* ── 소형 모바일 (≤390px) ── */
 
-/* ── 가로 모드 (landscape) — 달력 좌측 safe-area 반영 ── */
-@media (orientation: landscape) and (max-width: 900px) {
-  .topbar {
-    padding-left: max(20px, calc(env(safe-area-inset-left, 0px) + 14px));
-    padding-right: max(16px, calc(env(safe-area-inset-right, 0px) + 12px));
-  }
-  .left-inner {
-    padding-left: max(20px, calc(env(safe-area-inset-left, 0px) + 14px));
+/* ── 가로 모드 (landscape) — 스마트폰 ── */
+@media (orientation: landscape) and (max-width: 1024px) {
+  /* 좌측 달력 패널 완전히 숨기기 */
+  .left { display: none !important; }
+  /* 우측 메인 화면 꽉 채우기 */
+  .right {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
   .right-inner {
-    padding-right: max(16px, calc(env(safe-area-inset-right, 0px) + 12px));
+    padding: 10px 16px !important;
+    padding-left: max(16px, env(safe-area-inset-left, 16px)) !important;
+    padding-right: max(16px, env(safe-area-inset-right, 16px)) !important;
   }
+  /* 가로 모드에서 mob-active 상태 무관하게 right 항상 표시 */
+  .right.mob-active, .right:not(.mob-active) { display: block !important; }
+  .left.mob-active { display: none !important; }
+
+  /* 차트 카드 — 가로 모드에서 잘리지 않게 높이 제한 */
+  .chart-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .chart-canvas-outer {
+    aspect-ratio: auto !important;
+    height: 36vh !important;
+    min-height: 140px !important;
+    max-height: 220px !important;
+  }
+  .chart-canvas-outer canvas { width: 100% !important; height: 100% !important; }
+
+  /* KPI 그리드 컴팩트 */
+  .kpi-grid { gap: 8px; }
+  .kpi { padding: 10px 12px; }
+  .kpi-val { font-size: 16px; }
+  .kpi-sub { font-size: 12px; }
+
+  /* 모바일 바텀탭 — 가로에선 숨김 */
+  .mob-tabbar { display: none !important; }
+  /* topbar 슬림하게 */
+  .topbar { padding: 6px 16px !important; }
 }
+
 @media (max-width: 390px) {
   .kpi-val { font-size: 14px; }
   .broker-pills { grid-template-columns: 1fr 1fr; }
@@ -754,33 +783,36 @@ body.light-mode .hist-entry {
     <button class="profit-save-btn" onclick="saveDailyProfit()">💰 일간 수익 저장</button>
     <div class="save-msg" id="profitMsg"></div>
 
-    <!-- 추가 예수금 투입 -->
-    <div class="broker-hdr" style="margin-top:18px">
+    <!-- 추가 예수금 투입 (기본 접힘) -->
+    <div class="broker-hdr" style="margin-top:18px;cursor:pointer" onclick="toggleDepInput()">
       <span class="broker-badge" style="background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3)">추가 예수금 투입</span>
       <div class="broker-line"></div>
+      <span id="depInputArrow" style="font-size:11px;color:var(--text3);white-space:nowrap;margin-left:6px">▸ 펼치기</span>
     </div>
-    <!-- 예수금 달력 -->
-    <div class="dep-cal-wrap">
-      <div class="dep-cal-nav">
-        <button onclick="depCalMove(-1)">&#8249;</button>
-        <div class="dep-cal-month" id="depCalMonth"></div>
-        <button onclick="depCalMove(1)">&#8250;</button>
+    <div id="depInputBody" style="display:none">
+      <!-- 예수금 달력 -->
+      <div class="dep-cal-wrap">
+        <div class="dep-cal-nav">
+          <button onclick="depCalMove(-1)">&#8249;</button>
+          <div class="dep-cal-month" id="depCalMonth"></div>
+          <button onclick="depCalMove(1)">&#8250;</button>
+        </div>
+        <div class="dep-cal-grid" id="depCalGrid"></div>
+        <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;color:var(--text3)">선택</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#22c55e" id="depDateLbl">날짜를 선택하세요</span>
+        </div>
       </div>
-      <div class="dep-cal-grid" id="depCalGrid"></div>
-      <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:11px;color:var(--text3)">선택</span>
-        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#22c55e" id="depDateLbl">날짜를 선택하세요</span>
+      <div class="acc-row" style="margin-bottom:5px">
+        <span class="acc-name" style="color:#22c55e">금액</span>
+        <input class="acc-input" type="text" inputmode="numeric" placeholder="0" id="depInput" oninput="onNum(this)" style="border-color:rgba(34,197,94,.3)">
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="deposit-save-btn in" onclick="saveDeposit('in')">📥 입금</button>
+        <button class="deposit-save-btn out" onclick="saveDeposit('out')">📤 출금</button>
+      </div>
+      <div class="save-msg" id="depMsg"></div>
     </div>
-    <div class="acc-row" style="margin-bottom:5px">
-      <span class="acc-name" style="color:#22c55e">금액</span>
-      <input class="acc-input" type="text" inputmode="numeric" placeholder="0" id="depInput" oninput="onNum(this)" style="border-color:rgba(34,197,94,.3)">
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="deposit-save-btn in" onclick="saveDeposit('in')">📥 입금</button>
-      <button class="deposit-save-btn out" onclick="saveDeposit('out')">📤 출금</button>
-    </div>
-    <div class="save-msg" id="depMsg"></div>
 
   </div></div>
 
@@ -815,22 +847,24 @@ body.light-mode .hist-entry {
           </div>
           <button class="hide-amt-btn" id="hideAmtBtn" onclick="toggleHideAmount()">👁 금액 감추기</button>
           <button class="sync-btn" onclick="pullFromSheets()">↻ 동기화</button>
-          <button class="pdf-btn" onclick="exportPDF()">
-            <span>⬇</span> PDF 저장
-          </button>
         </div>
       </div>
 
       <div class="kpi-grid" id="kpiGrid"></div>
-      <!-- 추가 예수금 카드 -->
+      <!-- 추가 예수금 카드 (기본 접힘) -->
       <div class="deposit-card" id="depositCard">
-        <div class="deposit-card-title">추가 예수금 투입 현황</div>
-        <div class="deposit-row">
-          <div>
-            <div class="deposit-total" id="depTotalDisp">₩0</div>
-            <div class="deposit-sub" id="depSubDisp">입금 0건 / 출금 0건</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleDepositCard()">
+          <div class="deposit-card-title" style="margin-bottom:0">추가 예수금 투입 현황</div>
+          <span id="depCardArrow" style="font-size:12px;color:var(--text3);transition:transform .2s">▸ 내역 보기</span>
+        </div>
+        <div id="depCardBody" style="display:none;margin-top:12px">
+          <div class="deposit-row">
+            <div>
+              <div class="deposit-total" id="depTotalDisp">₩0</div>
+              <div class="deposit-sub" id="depSubDisp">입금 0건 / 출금 0건</div>
+            </div>
+            <button class="deposit-hist-btn" onclick="event.stopPropagation();showDepositPopup()">📋 상세 내역</button>
           </div>
-          <button class="deposit-hist-btn" onclick="showDepositPopup()">📋 내역 보기</button>
         </div>
       </div>
       <div class="broker-pills" id="brokerPills"></div>
@@ -852,11 +886,6 @@ body.light-mode .hist-entry {
         <div class="cbox">
           <div class="cbox-hdr">
             <div class="cbox-title">월간 실현 수익 추이 <span class="period" id="cperiod2"></span></div>
-            <div class="chart-type-btns">
-              <button class="ct-btn" id="deltaBarBtn" onclick="toggleDeltaBar(this)">당일 막대</button>
-              <button class="ct-btn all-days-btn" id="allDaysBtn2" onclick="toggleAllDays()">전체 일자</button>
-            </div>
-          </div>
           <div class="chart-canvas-outer"><canvas id="cvDelta"></canvas></div>
           <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap" id="dleg"></div>
         </div>
@@ -889,10 +918,10 @@ body.light-mode .hist-entry {
 <!-- 모바일 바텀 내비게이션 -->
 <div class="mob-nav" id="mobNav">
   <div class="mob-nav-inner">
-    <button class="mob-tab on" id="mt-input" onclick="mobGo('input')">
+    <button class="mob-tab" id="mt-input" onclick="mobGo('input')">
       <span class="mico">✏️</span>입력
     </button>
-    <button class="mob-tab" id="mt-dashboard" onclick="mobGo('dashboard')">
+    <button class="mob-tab on" id="mt-dashboard" onclick="mobGo('dashboard')">
       <span class="mico">📊</span>대시보드
     </button>
     <button class="mob-tab" id="mt-history" onclick="mobGo('history')">
@@ -1496,14 +1525,14 @@ function drawKpi(entries){
       '</div>'+
       previewHtml+
     '</div>'+
-    '<div class="kpi">'+
+    '<div class="kpi" id="profitKpiCard" style="cursor:pointer;user-select:none" title="탭하면 상세 내역 확인">'+
       '<div class="kpi-glow" style="background:rgba(91,155,248,.25);pointer-events:none"></div>'+
-      '<div class="kpi-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:4px">'+
-        '<span>'+profitLbl+'</span>'+
-        '<button id="pPeriodBtn" style="'+(profitPeriod==='month'?btnOff:btnOn)+'">'+profitBtnTxt+'</button>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'+
+        '<div class="kpi-lbl" style="margin-bottom:0">'+profitLbl+'</div>'+
+        '<span style="font-size:10px;color:var(--text3)">▸ 내역보기</span>'+
       '</div>'+
       '<div class="kpi-val '+clsN(profitVal)+'">'+fmtW(profitVal)+'</div>'+
-      '<div class="kpi-sub flat">'+dashYear+'년 '+(profitPeriod==='month'?(dashMonth+1)+'월 ':'')+'누적</div>'+
+      '<div class="kpi-sub flat">'+dashYear+'년 '+(profitPeriod==='month'?(dashMonth+1)+'월 ':'')+'누적 합산</div>'+
     '</div>';
 
   /* 이벤트 연결 */
@@ -1511,12 +1540,76 @@ function drawKpi(entries){
   if(lb) lb.onclick=function(){ loanExcludeMode=!loanExcludeMode; drawKpi(getMonthEntries()); };
   var leb=c.querySelector('#loanEditBtn');
   if(leb) leb.onclick=function(e){ e.stopPropagation(); showLoanEditPopup(); };
-  var pb=c.querySelector('#pPeriodBtn');
-  if(pb) pb.onclick=function(){ profitPeriod=profitPeriod==='month'?'year':'month'; drawKpi(getMonthEntries()); };
 
   /* 전일 대비 증감 기록 카드 → 팝업 */
   var dhCard=c.querySelector('#deltaHistCard');
   if(dhCard) dhCard.onclick=function(){ showDeltaPopup(entries, deltaRev); };
+
+  /* 월간증감 카드 → 팝업 */
+  var pkCard=c.querySelector('#profitKpiCard');
+  if(pkCard) pkCard.onclick=function(){ showProfitPopup(); };
+}
+
+function toggleDepositCard(){
+  var body=document.getElementById('depCardBody');
+  var arrow=document.getElementById('depCardArrow');
+  if(!body) return;
+  var open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(arrow) arrow.textContent=open?'▾ 닫기':'▸ 내역 보기';
+}
+
+function toggleDepInput(){
+  var body=document.getElementById('depInputBody');
+  var arrow=document.getElementById('depInputArrow');
+  if(!body) return;
+  var open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(arrow) arrow.textContent=open?'▾ 접기':'▸ 펼치기';
+}
+
+function showProfitPopup(){
+  var old=document.getElementById('profitPopupOverlay'); if(old) old.remove();
+  var mm=padZ(dashMonth+1), ym=dashYear+'-'+mm;
+  var keys=[];
+  for(var k in dailyProfits){
+    if(dailyProfits.hasOwnProperty(k)&&k.indexOf(ym)===0&&Number(dailyProfits[k])!==0) keys.push(k);
+  }
+  keys.sort().reverse(); /* 최신순 */
+  var total=0; for(var ti=0;ti<keys.length;ti++) total+=Number(dailyProfits[keys[ti]]);
+  var title=dashYear+'년 '+(dashMonth+1)+'월 실현 수익 내역';
+  var rowsHtml='';
+  if(!keys.length){
+    rowsHtml='<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">이 달 실현 수익 기록 없음</div>';
+  } else {
+    rowsHtml='<div style="display:grid;grid-template-columns:80px 1fr;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;padding:8px 16px;border-bottom:1px solid var(--border);text-transform:uppercase"><span>날짜</span><span style="text-align:right">실현 수익</span></div>';
+    for(var i=0;i<keys.length;i++){
+      var ds=keys[i], val=Number(dailyProfits[ds]);
+      var col=val>0?'#E52D2D':val<0?'#5B9BF8':'var(--text2)';
+      var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
+      rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr;padding:9px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,.04)">'+
+        '<span style="font-size:12px;color:var(--text2)">'+ds.slice(5)+'</span>'+
+        '<span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+col+';text-align:right">'+(val>0?'+':'')+fmtW(val)+'</span>'+
+      '</div>';
+    }
+    var tcol=total>0?'#E52D2D':total<0?'#5B9BF8':'var(--text2)';
+    rowsHtml+='<div style="display:grid;grid-template-columns:80px 1fr;padding:10px 16px;background:rgba(200,160,106,.08);border-top:1px solid rgba(200,160,106,.2)">'+
+      '<span style="font-size:12px;font-weight:700;color:var(--accent)">합계</span>'+
+      '<span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:800;color:'+tcol+';text-align:right">'+(total>0?'+':'')+fmtW(total)+'</span>'+
+    '</div>';
+  }
+  var overlay=document.createElement('div');
+  overlay.id='profitPopupOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+  overlay.innerHTML='<div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:400px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0">'+
+      '<div style="font-size:14px;font-weight:700;color:var(--text)">'+title+'</div>'+
+      '<button id="profitPopClose" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">✕</button>'+
+    '</div>'+
+    '<div style="overflow-y:auto;flex:1">'+rowsHtml+'</div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#profitPopClose').onclick=function(){ overlay.remove(); };
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
 }
 
 function showLoanEditPopup(){
@@ -1863,8 +1956,7 @@ function drawAccTable(entries){
       var val=last.values&&last.values[idx2]!==undefined&&last.values[idx2]!==''?Number(last.values[idx2])||0:0;
       var pval=prev&&prev.values&&prev.values[idx2]!==undefined&&prev.values[idx2]!==''?Number(prev.values[idx2])||0:val;
       var delta=val-pval,pct2=(total?(val/total*100).toFixed(1):'0.0'),bw2=(val/Math.max(total,1)*100).toFixed(1);
-      html+='<tr><td><div style="display:flex;align-items:center;gap:6px;padding-left:14px"><span style="font-size:12px;color:var(--text2)">'+(names[idx2]||('계좌'+(idx2+1)))+'</span>'+
-        '<div class="bar-wrap"><div class="bar-fill" style="width:'+bw2+'%;background:'+COLORS[idx2]+'"></div></div></div></td>'+
+      html+='<tr><td><span style="font-size:14px;color:var(--text2);padding-left:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:140px">'+(names[idx2]||('계좌'+(idx2+1)))+'</span></td>'+
         '<td>'+fmtW(val)+'</td><td class="'+clsN(delta)+'">'+fmtD(delta)+'</td><td style="color:var(--text3)">'+pct2+'%</td></tr>';
     }
   }
@@ -1954,12 +2046,40 @@ function mobGo(tab){
   window.scrollTo(0,0);
 }
 function initResponsive(){
-  if(isMobile()) mobGo('input');
+  if(isMobile()) mobGo('dashboard');
+  handleOrientation();
 }
-window.addEventListener('resize',function(){
+
+function handleOrientation(){
+  var w=window.innerWidth, h=window.innerHeight;
+  var isLandMob = w <= 1024 && w > h;
+  var left=document.querySelector('.left');
+  var right=document.querySelector('.right');
+  if(isLandMob){
+    left.style.display='none';
+    right.style.display='block';
+    right.style.width='100%';
+    right.style.minWidth='0';
+  } else if(w <= 768){
+    left.style.display='';
+    right.style.display='';
+    right.style.width='';
+    right.style.minWidth='';
+  } else {
+    left.style.display='';
+    right.style.display='';
+    right.style.width='';
+    right.style.minWidth='';
+  }
+  var ent=getMonthEntries();
+  requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });
+}
+
+window.addEventListener('resize', function(){
+  handleOrientation();
   if(!isMobile()){ document.querySelector('.left').classList.remove('mob-active'); document.querySelector('.right').classList.remove('mob-active'); }
-  else initResponsive();
 });
+window.addEventListener('orientationchange', function(){ setTimeout(handleOrientation, 350); });
 
 /* ═══════════════════════════════════
    초기화
@@ -2256,7 +2376,7 @@ function loadTheme(){
 
 /* ═══ 전체 일자 차트 ═══ */
 var showAllDays = false;
-var profitBarMode = false;
+var profitBarMode = true;
 var KR_HOLIDAYS = {
   '2025-01-01':1,'2025-01-28':1,'2025-01-29':1,'2025-01-30':1,
   '2025-03-01':1,'2025-05-05':1,'2025-05-06':1,'2025-06-06':1,

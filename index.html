@@ -435,12 +435,20 @@ tbody tr:last-child td { border-bottom:none; }
   .cbox { padding: 14px 12px; }
   .cbox-hdr { margin-bottom: 10px; }
 
-  /* 계좌 테이블 */
-  .tbox { border-radius: 12px; }
-  .tbox-hdr { padding: 10px 14px 8px; }
-  table { font-size: 11px; }
-  thead th { padding: 7px 10px; font-size: 9px; }
-  tbody td { padding: 8px 10px; }
+  /* 계좌 테이블 — 모바일 세로: 폰트 자동 축소로 잘림 방지 */
+  .tbox { border-radius: 12px; overflow-x: hidden; }
+  .tbox-hdr { padding: 10px 10px 8px; }
+  table { font-size: 10px; table-layout: fixed; width: 100%; }
+  table col:nth-child(1) { width: 30%; }
+  table col:nth-child(2) { width: 25%; }
+  table col:nth-child(3) { width: 25%; }
+  table col:nth-child(4) { width: 20%; }
+  thead th { padding: 6px 6px; font-size: 9px; letter-spacing: 0; }
+  tbody td { padding: 7px 6px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  tbody td:not(:first-child) { font-size: 10px; }
+  .broker-sep td:first-child { font-size: 10px; }
+  .total-row td { font-size: 10px; }
+  .nb { font-size: 9px; padding: 2px 5px; }
 
   /* 히스토리 */
   .hist-grid { grid-template-columns: 1fr 1fr; }
@@ -535,6 +543,16 @@ tbody tr:last-child td { border-bottom:none; }
   .hist-grid { grid-template-columns: 1fr; }
 }
 
+/* ── 컬러 테마 버튼 ── */
+.ct-theme-btn {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: 12px; padding: 10px 8px; cursor: pointer;
+  font-family: inherit; color: var(--text2); text-align: center;
+  transition: all .18s; display: flex; flex-direction: column; align-items: center;
+}
+.ct-theme-btn:hover { border-color: var(--accent2); background: var(--surface3); }
+.ct-theme-btn.active { border-color: var(--accent2); background: rgba(200,160,106,.12); color: var(--text); }
+
 /* ── 금액 감추기 버튼 ── */
 .hide-amt-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text2); font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
 .hide-amt-btn:hover { background:var(--surface3); color:var(--text); }
@@ -599,6 +617,56 @@ tbody tr:last-child td { border-bottom:none; }
 .bulk-apply-btn:hover { opacity:.85; }
 .bulk-result { margin-top:7px; font-size:11px; line-height:1.8; }
 .bulk-ok { color:var(--ko); } .bulk-skip { color:var(--text3); } .bulk-err { color:var(--down); }
+
+/* ══════════════════════════════════════
+   컬러 테마 5종
+══════════════════════════════════════ */
+
+/* 1. Midnight Navy — 딥 네이비 + 골드 */
+body.theme-navy {
+  --bg: #0b0f1e; --bg2: #111827; --surface: #151d30; --surface2: #1c2640; --surface3: #243050;
+  --border: rgba(99,131,206,.18); --border2: rgba(99,131,206,.3);
+  --text: #e8edf8; --text2: #9baad0; --text3: #5a6a90;
+  --accent: #f0c060; --accent2: #f0c060; --ko: #60d0a0;
+  --up: #E52D2D; --down: #5B9BF8;
+  --ki: #f0c060; --to: #5b9bf8; --to2: #2D61E5;
+}
+/* 2. Forest Green — 딥 그린 + 에메랄드 */
+body.theme-forest {
+  --bg: #091510; --bg2: #0f1f18; --surface: #132b20; --surface2: #1a3828; --surface3: #214530;
+  --border: rgba(52,211,153,.15); --border2: rgba(52,211,153,.3);
+  --text: #d8f4e8; --text2: #80b8a0; --text3: #4a7860;
+  --accent: #34d399; --accent2: #34d399; --ko: #34d399;
+  --up: #E52D2D; --down: #5B9BF8;
+  --ki: #f0a040; --to: #5b9bf8; --to2: #2D61E5;
+}
+/* 3. Crimson Dark — 딥 버건디 + 앰버 */
+body.theme-crimson {
+  --bg: #110808; --bg2: #1c0f0f; --surface: #261414; --surface2: #321a1a; --surface3: #3e2020;
+  --border: rgba(200,80,80,.18); --border2: rgba(200,80,80,.3);
+  --text: #f8e8e0; --text2: #c08878; --text3: #805848;
+  --accent: #f59e0b; --accent2: #f59e0b; --ko: #f59e0b;
+  --up: #ef4444; --down: #5B9BF8;
+  --ki: #f59e0b; --to: #5b9bf8; --to2: #2D61E5;
+}
+/* 4. Arctic Frost — 차가운 슬레이트 + 시안 */
+body.theme-arctic {
+  --bg: #080e14; --bg2: #0e1820; --surface: #12202e; --surface2: #192a3a; --surface3: #203448;
+  --border: rgba(56,189,248,.15); --border2: rgba(56,189,248,.28);
+  --text: #ddf0fc; --text2: #7ab0d0; --text3: #4a7090;
+  --accent: #38bdf8; --accent2: #38bdf8; --ko: #38bdf8;
+  --up: #E52D2D; --down: #a78bfa;
+  --ki: #f59e0b; --to: #38bdf8; --to2: #0ea5e9;
+}
+/* 5. Sunset Purple — 딥 바이올렛 + 핑크 */
+body.theme-sunset {
+  --bg: #0d0814; --bg2: #140e20; --surface: #1c1230; --surface2: #261840; --surface3: #301f50;
+  --border: rgba(167,139,250,.16); --border2: rgba(167,139,250,.3);
+  --text: #f0e8ff; --text2: #a890d8; --text3: #7060a0;
+  --accent: #c084fc; --accent2: #c084fc; --ko: #c084fc;
+  --up: #f472b6; --down: #38bdf8;
+  --ki: #f59e0b; --to: #a78bfa; --to2: #7c3aed;
+}
 
 /* ── 라이트 모드 ── */
 body.light-mode {
@@ -684,6 +752,35 @@ body.light-mode .hist-entry {
     </div>
     <div class="merr" id="merr"></div>
     <div style="height:1px;background:var(--border);margin:18px 0"></div>
+    <!-- 컬러 테마 -->
+    <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">컬러 테마</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+      <button class="ct-theme-btn" id="ctb-default" onclick="applyColorTheme('default')" style="--thc1:#1a1830;--thc2:#c8a06a">
+        <div style="display:flex;gap:3px;margin-bottom:5px"><div style="width:12px;height:12px;border-radius:3px;background:#1a1830"></div><div style="width:12px;height:12px;border-radius:3px;background:#c8a06a"></div><div style="width:12px;height:12px;border-radius:3px;background:#f87171"></div></div>
+        <div style="font-size:11px;font-weight:700">기본 다크</div>
+      </button>
+      <button class="ct-theme-btn" id="ctb-navy" onclick="applyColorTheme('navy')" style="--thc1:#0b0f1e;--thc2:#f0c060">
+        <div style="display:flex;gap:3px;margin-bottom:5px"><div style="width:12px;height:12px;border-radius:3px;background:#0b0f1e"></div><div style="width:12px;height:12px;border-radius:3px;background:#f0c060"></div><div style="width:12px;height:12px;border-radius:3px;background:#5b9bf8"></div></div>
+        <div style="font-size:11px;font-weight:700">미드나잇 네이비</div>
+      </button>
+      <button class="ct-theme-btn" id="ctb-forest" onclick="applyColorTheme('forest')" style="--thc1:#091510;--thc2:#34d399">
+        <div style="display:flex;gap:3px;margin-bottom:5px"><div style="width:12px;height:12px;border-radius:3px;background:#091510"></div><div style="width:12px;height:12px;border-radius:3px;background:#34d399"></div><div style="width:12px;height:12px;border-radius:3px;background:#f0a040"></div></div>
+        <div style="font-size:11px;font-weight:700">포레스트 그린</div>
+      </button>
+      <button class="ct-theme-btn" id="ctb-crimson" onclick="applyColorTheme('crimson')" style="--thc1:#110808;--thc2:#f59e0b">
+        <div style="display:flex;gap:3px;margin-bottom:5px"><div style="width:12px;height:12px;border-radius:3px;background:#261414"></div><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b"></div><div style="width:12px;height:12px;border-radius:3px;background:#ef4444"></div></div>
+        <div style="font-size:11px;font-weight:700">크림슨 다크</div>
+      </button>
+      <button class="ct-theme-btn" id="ctb-arctic" onclick="applyColorTheme('arctic')" style="--thc1:#080e14;--thc2:#38bdf8">
+        <div style="display:flex;gap:3px;margin-bottom:5px"><div style="width:12px;height:12px;border-radius:3px;background:#12202e"></div><div style="width:12px;height:12px;border-radius:3px;background:#38bdf8"></div><div style="width:12px;height:12px;border-radius:3px;background:#a78bfa"></div></div>
+        <div style="font-size:11px;font-weight:700">아틱 프로스트</div>
+      </button>
+      <button class="ct-theme-btn" id="ctb-sunset" onclick="applyColorTheme('sunset')" style="--thc1:#0d0814;--thc2:#c084fc">
+        <div style="display:flex;gap:3px;margin-bottom:5px"><div style="width:12px;height:12px;border-radius:3px;background:#1c1230"></div><div style="width:12px;height:12px;border-radius:3px;background:#c084fc"></div><div style="width:12px;height:12px;border-radius:3px;background:#f472b6"></div></div>
+        <div style="font-size:11px;font-weight:700">선셋 퍼플</div>
+      </button>
+    </div>
+    <div style="height:1px;background:var(--border);margin:14px 0"></div>
     <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">화면 모드</div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button id="btnDark"  onclick="setTheme('dark')"  style="flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">🌙 다크 모드</button>
@@ -892,10 +989,18 @@ body.light-mode .hist-entry {
           <div class="chart-canvas-outer"><canvas id="cvTotal"></canvas></div>
         </div>
         <!-- 일별 증감 -->
-        <div class="cbox">
+        <div class="cbox" style="position:relative">
           <div class="cbox-hdr">
             <div class="cbox-title">월간 실현 수익 추이 <span class="period" id="cperiod2"></span></div>
-          <div class="chart-canvas-outer"><canvas id="cvDelta"></canvas></div>
+          </div>
+          <div class="chart-canvas-outer" style="position:relative">
+            <canvas id="cvDelta"></canvas>
+            <!-- 터치 툴팁 -->
+            <div id="deltaTooltip" style="display:none;position:absolute;bottom:28px;right:10px;background:rgba(20,18,40,.92);border:1px solid var(--border2);border-radius:10px;padding:6px 12px;pointer-events:none;z-index:10;text-align:right">
+              <div id="deltaTooltipDate" style="font-size:10px;color:var(--text3);margin-bottom:2px"></div>
+              <div id="deltaTooltipVal" style="font-family:'DM Mono',monospace;font-size:15px;font-weight:800"></div>
+            </div>
+          </div>
           <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap" id="dleg"></div>
         </div>
       </div>
@@ -910,7 +1015,7 @@ body.light-mode .hist-entry {
             <button class="nav-sm" onclick="chDay(1)">&#8250;</button>
           </div>
         </div>
-        <table><thead><tr>
+        <table><colgroup><col><col><col><col></colgroup><thead><tr>
           <th>계좌</th><th>평가금액</th><th>전일 대비</th><th>비중</th>
         </tr></thead><tbody id="accTbody"></tbody></table>
       </div>
@@ -1069,7 +1174,16 @@ function hideLoader(){ document.getElementById('loader').classList.remove('on');
 /* ═══════════════════════════════════
    설정
 ═══════════════════════════════════ */
-function openSettings(){ document.getElementById('urlInput').value=MEM.scriptUrl; document.getElementById('merr').textContent=''; document.getElementById('overlay').classList.add('on'); }
+function openSettings(){
+  document.getElementById('urlInput').value=MEM.scriptUrl;
+  document.getElementById('merr').textContent='';
+  document.getElementById('overlay').classList.add('on');
+  /* 현재 컬러 테마 버튼 활성 표시 */
+  COLOR_THEMES.forEach(function(t){
+    var btn=document.getElementById('ctb-'+t);
+    if(btn) btn.classList.toggle('active', t===currentColorTheme);
+  });
+}
 function closeSettings(){ document.getElementById('overlay').classList.remove('on'); }
 function connectUrl(){
   var url=document.getElementById('urlInput').value.trim();
@@ -1730,6 +1844,52 @@ function showDeltaPopup(entries, deltaRev){
   overlay.querySelector('#deltaPopupClose').onclick=function(){ overlay.remove(); };
   overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
 }
+function bindDeltaTooltip(barVals, barLabs, pL, cw, n){
+  var cv=document.getElementById('cvDelta');
+  var tip=document.getElementById('deltaTooltip');
+  var tipDate=document.getElementById('deltaTooltipDate');
+  var tipVal=document.getElementById('deltaTooltipVal');
+  if(!cv||!tip) return;
+
+  /* 기존 핸들러 제거 위해 플래그 */
+  if(cv._tooltipBound){ cv.removeEventListener('touchstart',cv._ttStart); cv.removeEventListener('touchmove',cv._ttMove); cv.removeEventListener('touchend',cv._ttEnd); cv.removeEventListener('mousemove',cv._ttMouse); cv.removeEventListener('mouseleave',cv._ttLeave); }
+
+  function getIdx(clientX){
+    var rect=cv.getBoundingClientRect();
+    var x=clientX-rect.left;
+    var wPx=cv.offsetWidth;
+    var bpL2=pL||6, bcw2=cw||(wPx-12);
+    var idx=Math.floor(((x-bpL2)/bcw2)*n);
+    if(idx<0) idx=0; if(idx>=n) idx=n-1;
+    return idx;
+  }
+  function showTip(clientX){
+    var idx=getIdx(clientX);
+    var val=barVals[idx], lbl=barLabs[idx];
+    if(val===null||val===undefined||val===0){ tip.style.display='none'; return; }
+    var fullDate=dashYear+'-'+padZ(dashMonth+1)+'-'+lbl;
+    tipDate.textContent=fullDate.slice(5);
+    var col=val>0?'#E52D2D':val<0?'#5B9BF8':'var(--text2)';
+    tipVal.style.color=col;
+    tipVal.textContent=(val>0?'+':'')+fmtW(val);
+    tip.style.display='block';
+  }
+  function hideTip(){ tip.style.display='none'; }
+
+  cv._ttStart=function(e){ e.preventDefault(); showTip(e.touches[0].clientX); };
+  cv._ttMove= function(e){ e.preventDefault(); showTip(e.touches[0].clientX); };
+  cv._ttEnd=  function(){ setTimeout(hideTip,1500); };
+  cv._ttMouse=function(e){ showTip(e.clientX); };
+  cv._ttLeave=hideTip;
+  cv._tooltipBound=true;
+
+  cv.addEventListener('touchstart',cv._ttStart,{passive:false});
+  cv.addEventListener('touchmove', cv._ttMove, {passive:false});
+  cv.addEventListener('touchend',  cv._ttEnd,  {passive:true});
+  cv.addEventListener('mousemove', cv._ttMouse);
+  cv.addEventListener('mouseleave',cv._ttLeave);
+}
+
 function drawBrokerPills(entries){
   var c=document.getElementById('brokerPills');
   if(!entries.length){c.innerHTML='';return;}
@@ -1914,6 +2074,8 @@ function drawDeltaChart(entries){
     document.getElementById('dleg').innerHTML=
       '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:2px;background:#E52D2D"></div>당일 수익 +</div>'+
       '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#9896b8"><div style="width:8px;height:8px;border-radius:2px;background:#5B9BF8"></div>당일 수익 -</div>';
+    /* 바 툴팁 */
+    bindDeltaTooltip(barVals, barLabs, bpL, bcw, bnn);
     return;
   }
   var mn=validVals[0],mx=validVals[0];
@@ -2370,6 +2532,26 @@ function clearDailyProfit(){
 
 /* ═══ 테마 / 밝기 ═══ */
 var isLightMode = false;
+var currentColorTheme = 'default';
+
+var COLOR_THEMES = ['default','navy','forest','crimson','arctic','sunset'];
+
+function applyColorTheme(theme){
+  /* 기존 테마 클래스 모두 제거 */
+  COLOR_THEMES.forEach(function(t){ document.body.classList.remove('theme-'+t); });
+  currentColorTheme = theme;
+  if(theme !== 'default') document.body.classList.add('theme-'+theme);
+  /* 버튼 활성 상태 */
+  COLOR_THEMES.forEach(function(t){
+    var btn=document.getElementById('ctb-'+t);
+    if(btn) btn.classList.toggle('active', t===theme);
+  });
+  try{ localStorage.setItem('colorTheme', theme); }catch(e){}
+  /* 차트 재렌더 */
+  var ent=getMonthEntries();
+  requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });
+}
+
 function applyTheme(mode){
   isLightMode = (mode==='light');
   if(isLightMode) document.body.classList.add('light-mode');
@@ -2390,6 +2572,7 @@ function applyBrightness(val){
 }
 function loadTheme(){
   try{
+    var ct=localStorage.getItem('colorTheme'); if(ct) applyColorTheme(ct);
     var t=localStorage.getItem('themeMode'); if(t==='light') applyTheme('light');
     var b=localStorage.getItem('brightness');
     if(b){ document.documentElement.style.filter='brightness('+b+'%)';

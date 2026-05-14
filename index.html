@@ -156,11 +156,13 @@ body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; background: var(--
 .rpage { display:none; } .rpage.on { display:block; }
 
 /* ── Month selector ── */
-.month-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
-.month-row button.nav { background:var(--surface); border:1px solid var(--border); color:var(--text2); width:32px; height:32px; border-radius:8px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.month-row { display:flex; align-items:center; gap:5px; margin-bottom:12px; flex-wrap:nowrap; overflow:hidden; }
+.month-row button.nav { background:var(--surface); border:1px solid var(--border); color:var(--text2); width:30px; height:30px; border-radius:8px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; }
 .month-row button.nav:hover { background:var(--surface2); color:var(--text); }
-.month-lbl { font-family:'DM Mono',monospace; font-size:15px; font-weight:800; color:var(--text); letter-spacing:-.3px; }
-.month-row-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.month-lbl { font-family:'DM Mono',monospace; font-size:13px; font-weight:800; color:var(--text); letter-spacing:-.3px; white-space:nowrap; flex-shrink:0; }
+.month-row-right { margin-left:auto; display:flex; align-items:center; gap:5px; flex-shrink:0; }
+.day-nav { display:flex; align-items:center; gap:3px; background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:2px 4px; flex-shrink:0; }
+.day-lbl { font-size:11px; font-weight:800; color:var(--text); min-width:38px; text-align:center; white-space:nowrap; }
 .sync-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text2); font-size:12px; font-weight:600; padding:6px 14px; border-radius:8px; cursor:pointer; font-family:'Pretendard','Noto Sans KR',sans-serif; transition:all .15s; }
 .sync-btn:hover { background:var(--surface3); color:var(--text); }
 .pdf-btn { background:linear-gradient(135deg,rgba(200,160,106,.2),rgba(200,160,106,.1)); border:1px solid rgba(200,160,106,.4); color:var(--accent); font-size:12px; font-weight:700; padding:6px 14px; border-radius:8px; cursor:pointer; font-family:'Pretendard','Noto Sans KR',sans-serif; transition:all .15s; display:flex; align-items:center; gap:5px; }
@@ -276,17 +278,17 @@ canvas { width:100%!important; display:block; height:auto!important; }
 .tbox-hdr { padding:12px 18px 10px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
 .tbox-title { font-size:13px; font-weight:700; color:var(--text); }
 .tbox-sub { font-size:12px; font-weight:700; color:var(--accent2); font-family:'DM Mono',monospace; }
-table { width:100%; border-collapse:collapse; font-size:15px; }
-thead th { padding:9px 16px; text-align:left; font-size:13px; font-weight:700; color:var(--text3); letter-spacing:.3px; text-transform:uppercase; border-bottom:1px solid var(--border); background:var(--bg2); white-space:nowrap; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead th { padding:8px 12px; text-align:left; font-size:11px; font-weight:700; color:var(--text3); letter-spacing:.3px; text-transform:uppercase; border-bottom:1px solid var(--border); background:var(--bg2); white-space:nowrap; }
 thead th:not(:first-child) { text-align:right; }
-tbody td { padding:11px 16px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-tbody td:not(:first-child) { text-align:right; font-family:'DM Mono',monospace; font-size:15px; }
+tbody td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+tbody td:not(:first-child) { text-align:right; font-family:'DM Mono',monospace; font-size:13px; }
 tbody tr:hover td { background:var(--surface2); }
 tbody tr:last-child td { border-bottom:none; }
-.broker-sep td { background:var(--bg2)!important; padding:8px 16px!important; }
-.broker-sep td:first-child { font-size:13px; font-weight:700; }
-.total-row td { background:rgba(200,160,106,.08)!important; font-weight:700; font-family:'DM Mono',monospace; font-size:15px; color:var(--accent); border-top:1px solid rgba(200,160,106,.2); }
-.nb { font-size:12px; font-weight:800; padding:3px 9px; border-radius:8px; white-space:nowrap; }
+.broker-sep td { background:var(--bg2)!important; padding:7px 12px!important; }
+.broker-sep td:first-child { font-size:12px; font-weight:700; }
+.total-row td { background:rgba(200,160,106,.08)!important; font-weight:700; font-family:'DM Mono',monospace; font-size:13px; color:var(--accent); border-top:1px solid rgba(200,160,106,.2); }
+.nb { font-size:11px; font-weight:800; padding:2px 8px; border-radius:8px; white-space:nowrap; }
 .nb-ki{background:rgba(245,158,11,.15);color:#f59e0b}.nb-to{background:rgba(91,155,248,.15);color:#2D61E5}.nb-ko{background:rgba(52,211,153,.15);color:#34d399}.nb-ye{background:rgba(192,132,252,.15);color:#c084fc}
 /* 가로 바 완전 제거 */
 .bar-wrap { display:none !important; }
@@ -479,43 +481,49 @@ tbody tr:last-child td { border-bottom:none; }
 
 /* ── 가로 모드 (landscape) — 스마트폰 ── */
 @media (orientation: landscape) and (max-width: 1024px) {
+  /* 레이아웃 단일 컬럼 */
+  .layout { grid-template-columns: 1fr !important; }
   /* 좌측 달력 패널 완전히 숨기기 */
-  .left { display: none !important; }
+  .left, .left.mob-active { display: none !important; }
   /* 우측 메인 화면 꽉 채우기 */
-  .right {
+  .right, .right.mob-active, .right:not(.mob-active) {
     display: block !important;
     width: 100% !important;
     min-width: 0 !important;
+    max-width: 100% !important;
   }
   .right-inner {
-    padding: 10px 16px !important;
-    padding-left: max(16px, env(safe-area-inset-left, 16px)) !important;
-    padding-right: max(16px, env(safe-area-inset-right, 16px)) !important;
+    padding: 8px max(14px, env(safe-area-inset-right, 14px)) 8px max(14px, env(safe-area-inset-left, 14px)) !important;
   }
-  /* 가로 모드에서 mob-active 상태 무관하게 right 항상 표시 */
-  .right.mob-active, .right:not(.mob-active) { display: block !important; }
-  .left.mob-active { display: none !important; }
-
   /* 차트 카드 — 가로 모드에서 잘리지 않게 높이 제한 */
-  .chart-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .chart-row { grid-template-columns: 1fr 1fr !important; gap: 8px; margin-bottom: 8px; }
   .chart-canvas-outer {
     aspect-ratio: auto !important;
-    height: 36vh !important;
-    min-height: 140px !important;
-    max-height: 220px !important;
+    height: 34vh !important;
+    min-height: 120px !important;
+    max-height: 200px !important;
   }
   .chart-canvas-outer canvas { width: 100% !important; height: 100% !important; }
-
   /* KPI 그리드 컴팩트 */
-  .kpi-grid { gap: 8px; }
-  .kpi { padding: 10px 12px; }
-  .kpi-val { font-size: 16px; }
-  .kpi-sub { font-size: 12px; }
-
+  .kpi-grid { gap: 6px; margin-bottom: 8px; }
+  .kpi { padding: 9px 11px; }
+  .kpi-val { font-size: 15px; }
+  .kpi-sub { font-size: 11px; }
+  .kpi.wide .kpi-lbl { font-size: 11px; }
   /* 모바일 바텀탭 — 가로에선 숨김 */
   .mob-tabbar { display: none !important; }
-  /* topbar 슬림하게 */
-  .topbar { padding: 6px 16px !important; }
+  /* PC 탭 표시 */
+  .rtabs { display: flex !important; }
+  /* topbar 슬림 */
+  .topbar { padding: 5px 14px !important; }
+  /* month-row 컴팩트 */
+  .month-row { margin-bottom: 8px; }
+  /* deposit 카드 컴팩트 */
+  .deposit-card { padding: 8px 12px; margin-bottom: 8px; }
+  /* broker pills 컴팩트 */
+  .broker-pills { gap: 6px; margin-bottom: 8px; }
+  .bpill { padding: 8px 10px; }
+  .bpill-val { font-size: 14px; }
 }
 
 @media (max-width: 390px) {
@@ -838,13 +846,14 @@ body.light-mode .hist-entry {
         <div class="month-lbl" id="mlbl"></div>
         <button class="nav" onclick="chMon(1)">&#8250;</button>
 
+        <!-- 날짜 뷰어 — 월 버튼 바로 오른쪽 -->
+        <div class="day-nav" id="dayNav" style="margin-left:6px">
+          <button class="nav" onclick="chDay(-1)" id="dayPrev">&#8249;</button>
+          <div class="day-lbl" id="dayLbl" style="font-weight:800">날짜 선택</div>
+          <button class="nav" onclick="chDay(1)" id="dayNext">&#8250;</button>
+        </div>
+
         <div class="month-row-right">
-          <!-- 날짜 뷰어 — 우측 정렬 -->
-          <div class="day-nav" id="dayNav">
-            <button class="nav" onclick="chDay(-1)" id="dayPrev">&#8249;</button>
-            <div class="day-lbl" id="dayLbl" style="font-weight:800">날짜 선택</div>
-            <button class="nav" onclick="chDay(1)" id="dayNext">&#8250;</button>
-          </div>
           <button class="hide-amt-btn" id="hideAmtBtn" onclick="toggleHideAmount()">👁 금액 감추기</button>
           <button class="sync-btn" onclick="pullFromSheets()">↻ 동기화</button>
         </div>
@@ -1386,30 +1395,38 @@ function getYearCompound(entries){
 function drawKpi(entries){
   var c=document.getElementById('kpiGrid');
 
-  /* entries 없는 달 — 실현 수익 카드만 표기 */
+  /* entries 없는 달 — 실현 수익이 있으면 그것만 표기, 없으면 안내 */
   if(!entries.length){
-    /* 해당 월 말일을 cutoff로 사용 */
     var noEntCutoff=dashYear+'-'+padZ(dashMonth+1)+'-31';
-    var noEntProfit=(profitPeriod==='month')?getMonthProfit(noEntCutoff):getYearProfit(noEntCutoff);
-    var btnBase2='font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;cursor:pointer;border:1px solid;transition:all .15s;';
-    var btnOn2=btnBase2+'background:var(--accent2);color:#0a0e1a;border-color:var(--accent2);';
-    var btnOff2=btnBase2+'background:var(--surface3);color:var(--text2);border-color:var(--border2);';
-    var profitLbl2=(profitPeriod==='month'?'월간':'연간')+'증감 (실현 수익)';
-    var profitBtnTxt2=profitPeriod==='month'?'월간':'연간';
+    var noEntProfit=getMonthProfit(noEntCutoff);
+    /* dayLbl 업데이트 — dailyProfits 중 이 달의 마지막 날 */
+    var mm0=padZ(dashMonth+1),ym0=dashYear+'-'+mm0;
+    var profKeys=[]; for(var pk in dailyProfits) if(dailyProfits.hasOwnProperty(pk)&&pk.indexOf(ym0)===0) profKeys.push(pk);
+    profKeys.sort();
+    var noEntDate = profKeys.length ? profKeys[profKeys.length-1] : '';
+    if(noEntDate){ try{document.getElementById('dayLbl').textContent=noEntDate.slice(5);}catch(e){} }
     c.innerHTML=
-      '<div class="kpi wide" style="grid-column:span 2"><div class="kpi-lbl">이 달 계좌 데이터 없음</div><div class="kpi-val flat" style="font-size:15px">왼쪽에서 날짜를 선택하고 금액을 입력하세요</div></div>'+
-      '<div class="kpi" style="grid-column:span 1"><div class="kpi-lbl">누적 복리 수익</div><div class="kpi-val flat" style="font-size:13px">계좌 데이터 필요</div></div>'+
-      '<div class="kpi" style="grid-column:span 1">'+
+      '<div class="kpi wide" style="position:relative">'+
+        '<div class="kpi-glow" style="background:rgba(91,155,248,.15);pointer-events:none"></div>'+
+        '<div class="kpi-lbl" style="font-size:11px">이 달 계좌 입력 없음</div>'+
+        '<div class="kpi-val flat" style="font-size:14px;margin-top:4px">계좌 금액 미입력</div>'+
+      '</div>'+
+      '<div class="kpi" id="deltaHistCard2" style="cursor:pointer;user-select:none">'+
+        '<div class="kpi-glow" style="background:rgba(200,160,106,.1);pointer-events:none"></div>'+
+        '<div class="kpi-lbl" style="margin-bottom:4px">전일 대비 증감 기록</div>'+
+        '<div class="kpi-val flat" style="font-size:13px">계좌 데이터 없음</div>'+
+      '</div>'+
+      '<div class="kpi" id="profitKpiCard" style="cursor:pointer;user-select:none" title="탭하면 상세 내역 확인">'+
         '<div class="kpi-glow" style="background:rgba(91,155,248,.25);pointer-events:none"></div>'+
-        '<div class="kpi-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:4px">'+
-          '<span>'+profitLbl2+'</span>'+
-          '<button id="pPeriodBtn" style="'+(profitPeriod==='month'?btnOff2:btnOn2)+'">'+profitBtnTxt2+'</button>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'+
+          '<div class="kpi-lbl" style="margin-bottom:0">월간증감 (실현 수익)</div>'+
+          '<span style="font-size:10px;color:var(--text3)">▸ 내역보기</span>'+
         '</div>'+
         '<div class="kpi-val '+clsN(noEntProfit)+'">'+fmtW(noEntProfit)+'</div>'+
-        '<div class="kpi-sub flat">'+dashYear+'년 '+(profitPeriod==='month'?(dashMonth+1)+'월 ':'')+'누적</div>'+
+        '<div class="kpi-sub flat">'+dashYear+'년 '+(dashMonth+1)+'월 누적 합산</div>'+
       '</div>';
-    var pb2=c.querySelector('#pPeriodBtn');
-    if(pb2) pb2.onclick=function(){ profitPeriod=profitPeriod==='month'?'year':'month'; drawKpi(getMonthEntries()); };
+    var pkCard=c.querySelector('#profitKpiCard');
+    if(pkCard) pkCard.onclick=function(){ showProfitPopup(); };
     return;
   }
   var idx=dashEntryIdx===-1?entries.length-1:dashEntryIdx;
@@ -2055,21 +2072,28 @@ function handleOrientation(){
   var isLandMob = w <= 1024 && w > h;
   var left=document.querySelector('.left');
   var right=document.querySelector('.right');
+  var layout=document.querySelector('.layout');
   if(isLandMob){
+    if(layout) layout.style.gridTemplateColumns='1fr';
     left.style.display='none';
     right.style.display='block';
     right.style.width='100%';
     right.style.minWidth='0';
+    right.style.maxWidth='100%';
   } else if(w <= 768){
+    if(layout) layout.style.gridTemplateColumns='';
     left.style.display='';
     right.style.display='';
     right.style.width='';
     right.style.minWidth='';
+    right.style.maxWidth='';
   } else {
+    if(layout) layout.style.gridTemplateColumns='';
     left.style.display='';
     right.style.display='';
     right.style.width='';
     right.style.minWidth='';
+    right.style.maxWidth='';
   }
   var ent=getMonthEntries();
   requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });

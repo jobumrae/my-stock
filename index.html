@@ -952,7 +952,7 @@ body.light-mode .hist-entry {
         </div>
 
         <div class="month-row-right">
-          <button class="hide-amt-btn" id="hideAmtBtn" onclick="toggleHideAmount()">👁 금액 감추기</button>
+          <button class="hide-amt-btn" id="hideAmtBtn" onclick="toggleHideAmount()" title="금액 감추기" style="padding:5px 8px;font-size:16px;line-height:1">👁</button>
           <button class="sync-btn" onclick="pullFromSheets()">↻ 동기화</button>
         </div>
       </div>
@@ -1643,7 +1643,7 @@ function drawKpi(entries){
       '</div>'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
         '<span style="font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;color:'+dDayColor+'">'+fmtD(dDay)+'</span>'+
-        (dayP!==0?'<span style="font-family:\'DM Mono\',monospace;font-size:15px;font-weight:800;color:#E52D2D;white-space:nowrap">'+fmtW(dayP)+'</span>':'')+
+        (dayP!==0?'<span style="font-family:\'DM Mono\',monospace;font-size:15px;font-weight:800;color:'+(dayP>0?'#E52D2D':'#5B9BF8')+';white-space:nowrap">'+fmtW(dayP)+'</span>':'')+
       '</div>'+
     '</div>';
 
@@ -2837,7 +2837,7 @@ function toggleHideAmount(){
   if(_hideAmtActive) return; /* 진행 중엔 중복 클릭 무시 */
   _hideAmtActive = true;
   var btn = document.getElementById('hideAmtBtn');
-  if(btn){ btn.classList.add('active'); btn.textContent = '🙈 감추는 중...'; }
+  if(btn){ btn.classList.add('active'); btn.textContent = '🙈'; }
 
   var originals = new Map();
   var root = document.body;
@@ -2846,7 +2846,7 @@ function toggleHideAmount(){
   _hideAmtTimer = setTimeout(function(){
     restoreScramble(originals);
     _hideAmtActive = false;
-    if(btn){ btn.classList.remove('active'); btn.textContent = '👁 금액 감추기'; }
+    if(btn){ btn.classList.remove('active'); btn.textContent = '👁'; }
     /* 차트도 재렌더 */
     var ent = getMonthEntries();
     requestAnimationFrame(function(){ drawTotalChart(ent); drawDeltaChart(ent); });

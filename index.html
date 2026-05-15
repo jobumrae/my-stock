@@ -455,11 +455,13 @@ tbody tr:last-child td { border-bottom:none; }
   .hist-col { padding: 10px 10px; }
   .hist-hdr { padding: 10px 14px; }
 
-  /* 월 셀렉터 */
-  .month-row { margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
-  .month-lbl { font-size: 14px; }
-  .day-nav { margin-left: 0; }
-  .sync-btn { padding: 5px 10px; font-size: 11px; }
+  /* 월 셀렉터 — 모바일 한 줄, 날짜 이동 우측 */
+  .month-row { margin-bottom: 10px; flex-wrap: nowrap; gap: 4px; overflow: hidden; }
+  .month-lbl { font-size: 12px; }
+  .day-nav { margin-left: 0; flex-shrink: 0; }
+  .month-row-right { margin-left: auto; }
+  .sync-btn { padding: 5px 8px; font-size: 11px; }
+  .hide-amt-btn { font-size: 11px; padding: 5px 8px; }
 
   /* 달력 */
   .cal-card { padding: 12px; margin-bottom: 12px; }
@@ -727,7 +729,6 @@ body.light-mode .hist-entry {
 <!-- Topbar -->
 <div class="topbar">
   <div class="brand">
-    <div class="brand-icon">📈</div>
     <h1>주식일지 <span style="font-size:10px;background:rgba(126,179,245,.2);color:var(--accent2);padding:2px 8px;border-radius:10px;font-weight:600;vertical-align:middle;margin-left:4px">WEB</span></h1>
   </div>
   <div class="topbar-right">
@@ -883,7 +884,7 @@ body.light-mode .hist-entry {
         수익 금액
         <button onclick="clearDailyProfit()" title="이 날짜의 수익을 0으로 초기화" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(229,45,45,.18);border:1px solid rgba(229,45,45,.4);color:#E52D2D;font-size:11px;font-weight:900;cursor:pointer;line-height:1;padding:0;flex-shrink:0;transition:all .15s" onmouseover="this.style.background='rgba(229,45,45,.35)'" onmouseout="this.style.background='rgba(229,45,45,.18)'">✕</button>
       </span>
-      <input class="acc-input" type="text" inputmode="numeric" placeholder="0" id="profitInput" oninput="onNum(this)" style="border-color:rgba(91,155,248,.3)">
+      <input class="acc-input" type="text" inputmode="text" placeholder="0 또는 -금액" id="profitInput" oninput="onNumSigned(this)" style="border-color:rgba(91,155,248,.3)">
     </div>
     <button class="profit-save-btn" onclick="saveDailyProfit()">💰 일간 수익 저장</button>
     <div class="save-msg" id="profitMsg"></div>
@@ -990,16 +991,17 @@ body.light-mode .hist-entry {
         </div>
         <!-- 일별 증감 -->
         <div class="cbox" style="position:relative">
-          <div class="cbox-hdr">
+          <div class="cbox-hdr" style="position:relative">
             <div class="cbox-title">월간 실현 수익 추이 <span class="period" id="cperiod2"></span></div>
+            <div id="deltaBarInfo" style="display:none;text-align:right;line-height:1.3">
+              <div id="deltaBarDate" style="font-size:10px;color:var(--text3)"></div>
+              <div id="deltaBarAmt" style="font-family:'DM Mono',monospace;font-size:14px;font-weight:800"></div>
+            </div>
           </div>
           <div class="chart-canvas-outer" style="position:relative">
             <canvas id="cvDelta"></canvas>
-            <!-- 터치 툴팁 -->
-            <div id="deltaTooltip" style="display:none;position:absolute;bottom:28px;right:10px;background:rgba(20,18,40,.92);border:1px solid var(--border2);border-radius:10px;padding:6px 12px;pointer-events:none;z-index:10;text-align:right">
-              <div id="deltaTooltipDate" style="font-size:10px;color:var(--text3);margin-bottom:2px"></div>
-              <div id="deltaTooltipVal" style="font-family:'DM Mono',monospace;font-size:15px;font-weight:800"></div>
-            </div>
+            <!-- 터치 툴팁 (레거시 — 비활성) -->
+            <div id="deltaTooltip" style="display:none"></div>
           </div>
           <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap" id="dleg"></div>
         </div>
@@ -1264,7 +1266,8 @@ function pullFromSheets(){
       MEM.stockData=clean;
       if(result.meta){
         try{ if(result.meta.dailyProfits) dailyProfits=JSON.parse(result.meta.dailyProfits); }catch(e){}
-        try{ if(result.meta.loanAmount) LOAN_FIXED=Number(result.meta.loanAmount)||200000000; }catch(e){}
+        try{ if(result.meta.loanAmount) LOAN_FIXED=Number(result.meta.loanAmount)||0; }catch(e){}
+        try{ if(result.meta.loanData){ var ld=JSON.parse(result.meta.loanData); if(Array.isArray(ld)&&ld.length===3) ld.forEach(function(v,i){ LOANS[i].amt=Number(v)||0; }); } }catch(e){}
         try{ if(result.meta.depositLogs) depositLogs=JSON.parse(result.meta.depositLogs); }catch(e){}
       }
       var cnt=Object.keys(clean).length;
@@ -1360,8 +1363,26 @@ function onNum(el){
   el.value=n.toLocaleString('ko-KR');
   var diff=el.value.length-old;try{el.setSelectionRange(pos+diff,pos+diff);}catch(e){}
 }
-function getRaw(id){var el=document.getElementById(id);if(!el)return'';var v=el.value.replace(/,/g,'');return v===''?'':Number(v);}
-function buildGrid(){
+/* 부호 허용 버전 — 수익금액(손해 포함) */
+function onNumSigned(el){
+  var v=el.value;
+  var neg=v.trim().startsWith('-');
+  var raw=v.replace(/[^0-9]/g,'');
+  if(!raw){el.value=neg?'-':'';return;}
+  var n=parseInt(raw,10);
+  var pos=el.selectionStart,old=el.value.length;
+  el.value=(neg?'-':'')+n.toLocaleString('ko-KR');
+  var diff=el.value.length-old;try{el.setSelectionRange(pos+diff,pos+diff);}catch(e){}
+}
+function getRawSigned(id){
+  var el=document.getElementById(id);if(!el)return'';
+  var v=el.value.trim();
+  var neg=v.startsWith('-');
+  var num=Number(v.replace(/[^0-9]/g,''));
+  return v===''?'':( neg?-num:num );
+}
+function getRaw(id){var el=document.getElementById(id);if(!el)return'';var v=el.value.replace(/,/g,'').replace(/-/g,'');return v===''?'':Number(v);}
+
   var names=MEM.stockNames, exist=selectedDate&&MEM.stockData[selectedDate]?MEM.stockData[selectedDate]:{};
   var grid=document.getElementById('sgrid'); grid.innerHTML='';
   for(var bi=0;bi<BROKERS.length;bi++){
@@ -1468,7 +1489,16 @@ function renderDash(){
 }
 
 /* 기간 상태 */
-var loanExcludeMode=false, LOAN_FIXED=200000000;
+var loanExcludeMode=false;
+var LOANS=[
+  {name:'카카오 마이너스통장 대출', amt:0},
+  {name:'신한보험 대출',             amt:0},
+  {name:'하나 전세 대출',            amt:0}
+];
+/* 3개 합산 */
+function LOAN_TOTAL(){ return LOANS[0].amt+LOANS[1].amt+LOANS[2].amt; }
+/* 하위 호환 — 단일 값 참조 부분 대체 */
+var LOAN_FIXED=200000000; /* 초기값, 동기화 후 LOAN_TOTAL()로 대체 */
 var profitPeriod='month', compoundPeriod='month';
 var dailyProfits={};
 
@@ -1553,7 +1583,7 @@ function drawKpi(entries){
   var dayP=dailyProfits[curDs]?Number(dailyProfits[curDs]):0;
 
   /* 대출포함/제외 */
-  var dispTotal=loanExcludeMode?total-LOAN_FIXED:total;
+  var dispTotal=loanExcludeMode?total-LOAN_TOTAL():total;
   var loanStyle=loanExcludeMode
     ?'background:rgba(251,113,133,.25);border:1px solid rgba(251,113,133,.5);color:#fb7185;'
     :'background:var(--surface3);border:1px solid var(--border2);color:var(--text2);';
@@ -1644,7 +1674,7 @@ function drawKpi(entries){
         '<button id="loanExclBtn" style="'+loanStyle+'font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">'+loanTxt+'</button>'+
         '<button id="loanEditBtn" style="background:var(--surface3);border:1px solid var(--border2);color:var(--text2);font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;cursor:pointer;white-space:nowrap;">수정</button>'+
       '</div>'+
-      '<div class="kpi-lbl" style="font-size:12px">현재 총 자산'+(loanExcludeMode?' <span style="font-size:10px;color:#E52D2D">(대출 -₩'+LOAN_FIXED.toLocaleString('ko-KR')+')</span>':'')+'</div>'+
+      '<div class="kpi-lbl" style="font-size:12px">현재 총 자산'+(loanExcludeMode?' <span style="font-size:10px;color:#E52D2D">(대출 -₩'+LOAN_TOTAL().toLocaleString('ko-KR')+')</span>':'')+'</div>'+
       '<div class="kpi-val" style="padding-right:90px">'+fmtW(dispTotal)+'</div>'+
       dDayHtml+
     '</div>'+
@@ -1748,37 +1778,62 @@ function showLoanEditPopup(){
   var overlay=document.createElement('div');
   overlay.id='loanEditOverlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+
+  function loanRow(idx){
+    return '<div style="margin-bottom:12px">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;letter-spacing:.2px">대출 '+(idx+1)+'. '+LOANS[idx].name+'</div>'+
+      '<input id="loanInp'+idx+'" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="0"'+
+        ' style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:\'DM Mono\',monospace;font-size:14px;font-weight:700;padding:9px 12px;outline:none;-webkit-appearance:none;appearance:none;box-sizing:border-box"'+
+        ' value="'+(LOANS[idx].amt||'')+'">'+
+      '<div id="loanPrev'+idx+'" style="font-size:11px;color:var(--text3);font-family:\'DM Mono\',monospace;margin-top:3px;min-height:14px">'+
+        (LOANS[idx].amt?'₩'+LOANS[idx].amt.toLocaleString('ko-KR'):'')+
+      '</div>'+
+    '</div>';
+  }
+
   overlay.innerHTML=
-    '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border)">'+
+    '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1">'+
         '<div style="font-size:14px;font-weight:700;color:var(--text)">대출금 수정</div>'+
         '<button id="loanEditClose" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">✕</button>'+
       '</div>'+
-      '<div style="padding:20px 16px">'+
-        '<div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:.3px">현재 대출금</div>'+
-        '<div style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--accent);margin-bottom:16px">₩'+LOAN_FIXED.toLocaleString('ko-KR')+'</div>'+
-        '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">새 대출금액 입력 (숫자만)</div>'+
-        '<input id="loanAmtInput" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="200000000" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;padding:10px 12px;outline:none;margin-bottom:6px;-webkit-appearance:none;appearance:none">'+
-        '<div id="loanFmtPreview" style="font-size:12px;color:var(--text3);margin-bottom:12px;font-family:\'DM Mono\',monospace;min-height:16px"></div>'+
+      '<div style="padding:18px 16px">'+
+        /* 현재 합산 표시 */
+        '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">'+
+          '<span style="font-size:11px;color:var(--text3);font-weight:600">현재 총 대출금</span>'+
+          '<span id="loanSumDisp" style="font-family:\'DM Mono\',monospace;font-size:17px;font-weight:800;color:var(--accent)">₩'+LOAN_TOTAL().toLocaleString('ko-KR')+'</span>'+
+        '</div>'+
+        /* 3개 입력 */
+        loanRow(0)+loanRow(1)+loanRow(2)+
+        /* 합산 미리보기 */
+        '<div style="background:rgba(200,160,106,.08);border:1px solid rgba(200,160,106,.2);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:14px">'+
+          '<span style="font-size:12px;font-weight:700;color:var(--accent)">입력 합산</span>'+
+          '<span id="loanNewSum" style="font-family:\'DM Mono\',monospace;font-size:15px;font-weight:800;color:var(--accent)">₩0</span>'+
+        '</div>'+
         '<div id="loanSaveMsg" style="font-size:12px;min-height:18px;margin-bottom:10px;text-align:center"></div>'+
         '<div style="display:flex;gap:8px">'+
-          '<button id="loanSaveBtn" style="flex:1;background:var(--accent2);color:#0a0e1a;border:none;border-radius:10px;font-size:13px;font-weight:700;padding:10px 0;cursor:pointer">저장</button>'+
-          '<button id="loanEditClose2" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:10px;font-size:13px;font-weight:700;padding:10px 0;cursor:pointer">취소</button>'+
+          '<button id="loanSaveBtn" style="flex:1;background:var(--accent2);color:#0a0e1a;border:none;border-radius:10px;font-size:13px;font-weight:700;padding:11px 0;cursor:pointer">저장</button>'+
+          '<button id="loanEditClose2" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:10px;font-size:13px;font-weight:700;padding:11px 0;cursor:pointer">취소</button>'+
         '</div>'+
       '</div>'+
     '</div>';
+
   document.body.appendChild(overlay);
 
-  /* 숫자 포맷 입력 — iOS 호환 */
-  var inp=overlay.querySelector('#loanAmtInput');
-  var preview=overlay.querySelector('#loanFmtPreview');
-  inp.value=String(LOAN_FIXED);
-  preview.textContent='₩'+LOAN_FIXED.toLocaleString('ko-KR');
-  inp.addEventListener('input', function(){
-    var raw=this.value.replace(/[^0-9]/g,'');
-    this.value=raw;
-    preview.textContent=raw?'₩'+Number(raw).toLocaleString('ko-KR'):'';
-  });
+  /* 합산 실시간 업데이트 */
+  function updateSum(){
+    var total=0;
+    for(var i=0;i<3;i++){
+      var v=Number(overlay.querySelector('#loanInp'+i).value.replace(/[^0-9]/g,''))||0;
+      overlay.querySelector('#loanPrev'+i).textContent=v?'₩'+v.toLocaleString('ko-KR'):'';
+      total+=v;
+    }
+    overlay.querySelector('#loanNewSum').textContent='₩'+total.toLocaleString('ko-KR');
+  }
+  for(var ii=0;ii<3;ii++){
+    overlay.querySelector('#loanInp'+ii).addEventListener('input',function(){ var raw=this.value.replace(/[^0-9]/g,''); this.value=raw; updateSum(); });
+  }
+  updateSum();
 
   /* 닫기 */
   var closeF=function(){ overlay.remove(); };
@@ -1788,18 +1843,19 @@ function showLoanEditPopup(){
 
   /* 저장 */
   overlay.querySelector('#loanSaveBtn').onclick=function(){
-    var raw=inp.value.replace(/[^0-9]/g,'');
-    var newAmt=Number(raw)||0;
-    if(!raw||newAmt<0){ alert('올바른 금액을 입력하세요.'); return; }
-    var msg=overlay.querySelector('#loanSaveMsg');
     if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); return; }
+    var amts=[];
+    for(var j=0;j<3;j++) amts.push(Number(overlay.querySelector('#loanInp'+j).value.replace(/[^0-9]/g,''))||0);
+    var msg=overlay.querySelector('#loanSaveMsg');
     msg.style.color='var(--text3)'; msg.textContent='⏳ 저장 중...';
-    doPost({action:'saveMeta',key:'loanAmount',value:String(newAmt)},function(ok){
+    doPost({action:'saveMeta',key:'loanData',value:JSON.stringify(amts)},function(ok){
       if(ok){
-        LOAN_FIXED=newAmt;
-        msg.style.color='#22c55e'; msg.textContent='✓ 저장 완료 (₩'+newAmt.toLocaleString('ko-KR')+')';
+        amts.forEach(function(v,i){ LOANS[i].amt=v; });
+        LOAN_FIXED=LOAN_TOTAL();
+        overlay.querySelector('#loanSumDisp').textContent='₩'+LOAN_TOTAL().toLocaleString('ko-KR');
+        msg.style.color='#22c55e'; msg.textContent='✓ 저장 완료 (합계 ₩'+LOAN_TOTAL().toLocaleString('ko-KR')+')';
         drawKpi(getMonthEntries());
-        setTimeout(function(){ overlay.remove(); },1200);
+        setTimeout(function(){ overlay.remove(); },1400);
       } else {
         msg.style.color='#E52D2D'; msg.textContent='❌ 저장 실패. 다시 시도하세요.';
       }
@@ -1844,45 +1900,120 @@ function showDeltaPopup(entries, deltaRev){
   overlay.querySelector('#deltaPopupClose').onclick=function(){ overlay.remove(); };
   overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
 }
-function bindDeltaTooltip(barVals, barLabs, pL, cw, n){
+function bindDeltaTooltip(barVals, barLabs, pL, cw, n, bnn2, bpL2, bcw2, bbw2){
   var cv=document.getElementById('cvDelta');
   var tip=document.getElementById('deltaTooltip');
-  var tipDate=document.getElementById('deltaTooltipDate');
-  var tipVal=document.getElementById('deltaTooltipVal');
-  if(!cv||!tip) return;
+  if(!cv) return;
 
-  /* 기존 핸들러 제거 위해 플래그 */
-  if(cv._tooltipBound){ cv.removeEventListener('touchstart',cv._ttStart); cv.removeEventListener('touchmove',cv._ttMove); cv.removeEventListener('touchend',cv._ttEnd); cv.removeEventListener('mousemove',cv._ttMouse); cv.removeEventListener('mouseleave',cv._ttLeave); }
+  var infoBox=document.getElementById('deltaBarInfo');
+  var infoDate=document.getElementById('deltaBarDate');
+  var infoAmt=document.getElementById('deltaBarAmt');
+  var hideTimer=null, hlTimer=null;
+  var hlIdx=-1;
 
+  /* 터치/클릭한 x 좌표 → 바 인덱스 */
   function getIdx(clientX){
     var rect=cv.getBoundingClientRect();
-    var x=clientX-rect.left;
-    var wPx=cv.offsetWidth;
-    var bpL2=pL||6, bcw2=cw||(wPx-12);
-    var idx=Math.floor(((x-bpL2)/bcw2)*n);
-    if(idx<0) idx=0; if(idx>=n) idx=n-1;
+    var x=(clientX-rect.left)*(cv.width/(cv.offsetWidth||1))/(window.devicePixelRatio||1);
+    var _pL=pL||6, _cw=cw||(cv.offsetWidth-12), _n=n||1;
+    var idx=Math.floor(((x-_pL)/_cw)*_n);
+    if(idx<0) idx=0; if(idx>=_n) idx=_n-1;
     return idx;
   }
-  function showTip(clientX){
-    var idx=getIdx(clientX);
+
+  /* 헤더 우측 정보 표시 */
+  function showInfo(idx){
+    if(!infoBox||!infoDate||!infoAmt) return;
     var val=barVals[idx], lbl=barLabs[idx];
-    if(val===null||val===undefined||val===0){ tip.style.display='none'; return; }
+    if(val===null||val===undefined){ hideInfo(); return; }
     var fullDate=dashYear+'-'+padZ(dashMonth+1)+'-'+lbl;
-    tipDate.textContent=fullDate.slice(5);
+    infoDate.textContent=fullDate.slice(5)+' 실현 수익';
     var col=val>0?'#E52D2D':val<0?'#5B9BF8':'var(--text2)';
-    tipVal.style.color=col;
-    tipVal.textContent=(val>0?'+':'')+fmtW(val);
-    tip.style.display='block';
+    infoAmt.style.color=col;
+    infoAmt.textContent=(val>0?'+':'')+fmtW(val);
+    infoBox.style.display='block';
+    clearTimeout(hideTimer);
+    hideTimer=setTimeout(hideInfo,5000);
   }
-  function hideTip(){ tip.style.display='none'; }
+  function hideInfo(){
+    if(infoBox) infoBox.style.display='none';
+  }
 
-  cv._ttStart=function(e){ e.preventDefault(); showTip(e.touches[0].clientX); };
-  cv._ttMove= function(e){ e.preventDefault(); showTip(e.touches[0].clientX); };
-  cv._ttEnd=  function(){ setTimeout(hideTip,1500); };
-  cv._ttMouse=function(e){ showTip(e.clientX); };
-  cv._ttLeave=hideTip;
+  /* 하이라이트 바 재드로잉 */
+  function highlightBar(idx){
+    if(hlIdx===idx) return;
+    hlIdx=idx;
+    /* 현재 barVals/barLabs 기반으로 전체 재드로잉 (하이라이트 포함) */
+    var r=getCtx('cvDelta'), ctx2=r.ctx, w2=r.w, h2=r.h;
+    var _pL=pL||6, _pR=6, _pT=10, _pB=26;
+    var _cw=w2-_pL-_pR, _ch=h2-_pT-_pB, _midY=_pT+_ch/2;
+    var _n=barVals.length;
+    var validBar=barVals.filter(function(v){return v!==null&&v!==0;});
+    var _bmxA=1; for(var bi=0;bi<validBar.length;bi++) if(Math.abs(validBar[bi])>_bmxA) _bmxA=Math.abs(validBar[bi]);
+    var _maxH=_ch/2*0.85, _bw=Math.max(4,_cw/_n-2);
+    var _step=Math.max(1,Math.floor(_n/8));
+    /* 0선 */
+    ctx2.strokeStyle='rgba(255,255,255,.1)';ctx2.lineWidth=1;ctx2.setLineDash([3,3]);
+    ctx2.beginPath();ctx2.moveTo(_pL,_midY);ctx2.lineTo(w2-_pR,_midY);ctx2.stroke();
+    ctx2.setLineDash([]);
+    for(var bk=0;bk<_n;bk++){
+      var bx=_pL+(bk/_n)*_cw+(_cw/_n-_bw)/2;
+      if(barVals[bk]===null||barVals[bk]===0){
+        if(bk%_step===0||bk===_n-1){ctx2.fillStyle='#5a5878';ctx2.font='9px monospace';ctx2.textAlign='center';ctx2.fillText(barLabs[bk],bx+_bw/2,h2-8);}
+        continue;
+      }
+      var _bbh=Math.max(2,(Math.abs(barVals[bk])/_bmxA)*_maxH);
+      var _up=barVals[bk]>0;
+      var isHL=(bk===idx);
+      /* 하이라이트: 밝고 테두리 강조 */
+      var _bg;
+      if(isHL){
+        _bg=ctx2.createLinearGradient(0,_up?_midY-_bbh:_midY,0,_up?_midY:_midY+_bbh);
+        if(_up){_bg.addColorStop(0,'rgba(255,100,100,1)');_bg.addColorStop(1,'rgba(255,200,100,.7)');}
+        else{_bg.addColorStop(0,'rgba(120,200,255,.7)');_bg.addColorStop(1,'rgba(91,155,248,1)');}
+        /* 글로우 */
+        ctx2.shadowColor=_up?'rgba(255,80,80,.8)':'rgba(91,155,248,.8)';
+        ctx2.shadowBlur=12;
+      } else {
+        _bg=ctx2.createLinearGradient(0,_up?_midY-_bbh:_midY,0,_up?_midY:_midY+_bbh);
+        if(_up){_bg.addColorStop(0,'rgba(229,45,45,.9)');_bg.addColorStop(1,'rgba(229,45,45,.3)');}
+        else{_bg.addColorStop(0,'rgba(91,155,248,.3)');_bg.addColorStop(1,'rgba(91,155,248,.9)');}
+        ctx2.shadowBlur=0;
+      }
+      ctx2.fillStyle=_bg;
+      if(ctx2.roundRect){ctx2.beginPath();if(_up)ctx2.roundRect(bx,_midY-_bbh,_bw,_bbh,[3,3,0,0]);else ctx2.roundRect(bx,_midY,_bw,_bbh,[0,0,3,3]);ctx2.fill();}
+      else{if(_up)ctx2.fillRect(bx,_midY-_bbh,_bw,_bbh);else ctx2.fillRect(bx,_midY,_bw,_bbh);}
+      ctx2.shadowBlur=0;
+      if(bk%_step===0||bk===_n-1){ctx2.fillStyle='#5a5878';ctx2.font='9px monospace';ctx2.textAlign='center';ctx2.fillText(barLabs[bk],bx+_bw/2,h2-8);}
+    }
+    clearTimeout(hlTimer);
+    hlTimer=setTimeout(function(){
+      hlIdx=-1;
+      var ent=getMonthEntries();
+      requestAnimationFrame(function(){ drawDeltaChart(ent); });
+    },5000);
+  }
+
+  function onTouch(clientX){
+    var idx=getIdx(clientX);
+    showInfo(idx);
+    highlightBar(idx);
+  }
+
+  /* 기존 이벤트 제거 */
+  if(cv._tooltipBound){
+    cv.removeEventListener('touchstart',cv._ttStart);
+    cv.removeEventListener('touchmove',cv._ttMove);
+    cv.removeEventListener('touchend',cv._ttEnd);
+    cv.removeEventListener('mousemove',cv._ttMouse);
+    cv.removeEventListener('mouseleave',cv._ttLeave);
+  }
+  cv._ttStart=function(e){ e.preventDefault(); onTouch(e.touches[0].clientX); };
+  cv._ttMove= function(e){ e.preventDefault(); onTouch(e.touches[0].clientX); };
+  cv._ttEnd=  function(){ /* 하이라이트/info는 5초 후 자동 해제 */ };
+  cv._ttMouse=function(e){ onTouch(e.clientX); };
+  cv._ttLeave=function(){ /* 마우스 벗어나도 5초 유지 */ };
   cv._tooltipBound=true;
-
   cv.addEventListener('touchstart',cv._ttStart,{passive:false});
   cv.addEventListener('touchmove', cv._ttMove, {passive:false});
   cv.addEventListener('touchend',  cv._ttEnd,  {passive:true});
@@ -2304,7 +2435,8 @@ function buildPCal(){
 function selectProfitDate(ds){
   profitSelectedDate=ds; buildPCal();
   var lbl=document.getElementById('profitDateLbl'); if(lbl) lbl.textContent=fmtDate(ds);
-  var pi=document.getElementById('profitInput'); if(pi) pi.value=dailyProfits[ds]?Number(dailyProfits[ds]).toLocaleString('ko-KR'): '';
+  var pi=document.getElementById('profitInput');
+  if(pi){ var pv=dailyProfits[ds]?Number(dailyProfits[ds]):0; pi.value=pv?pv.toLocaleString('ko-KR'):''; }
 }
 
 
@@ -2495,8 +2627,8 @@ function showDepositPopup(){
 function saveDailyProfit(){
   if(!profitSelectedDate){ alert('미니 달력에서 날짜를 선택하세요.'); return; }
   if(!MEM.scriptUrl){ alert('Google Sheets URL을 먼저 연결하세요.'); return; }
-  var raw=getRaw('profitInput');
-  if(raw==='' || raw===0){ alert('수익 금액을 입력하세요.'); return; }
+  var raw=getRawSigned('profitInput');
+  if(raw===''||raw===null){ alert('수익 금액을 입력하세요.'); return; }
   dailyProfits[profitSelectedDate]=Number(raw);
   var msg=document.getElementById('profitMsg');
   msg.textContent='⏳ 저장 중...';

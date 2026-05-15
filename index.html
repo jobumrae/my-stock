@@ -1383,7 +1383,7 @@ function getRawSigned(id){
 }
 function getRaw(id){var el=document.getElementById(id);if(!el)return'';var v=el.value.replace(/,/g,'').replace(/-/g,'');return v===''?'':Number(v);}
 
-  var names=MEM.stockNames, exist=selectedDate&&MEM.stockData[selectedDate]?MEM.stockData[selectedDate]:{};
+function buildGrid(){
   var grid=document.getElementById('sgrid'); grid.innerHTML='';
   for(var bi=0;bi<BROKERS.length;bi++){
     var br=BROKERS[bi];

@@ -730,6 +730,7 @@ body.light-mode .hist-entry {
 <div class="topbar">
   <div class="brand">
     <h1>주식일지 <span style="font-size:10px;background:rgba(126,179,245,.2);color:var(--accent2);padding:2px 8px;border-radius:10px;font-weight:600;vertical-align:middle;margin-left:4px">WEB</span></h1>
+    <button class="sync-btn" onclick="pullFromSheets()" style="margin-left:10px;flex-shrink:0">↻ 동기화</button>
   </div>
   <div class="topbar-right">
     <button class="pc-theme-btn" id="pcThemeBtn" onclick="toggleTheme()">🌙 다크</button>
@@ -953,7 +954,6 @@ body.light-mode .hist-entry {
 
         <div class="month-row-right">
           <button class="hide-amt-btn" id="hideAmtBtn" onclick="toggleHideAmount()" title="금액 감추기" style="padding:5px 8px;font-size:16px;line-height:1">👁</button>
-          <button class="sync-btn" onclick="pullFromSheets()">↻ 동기화</button>
         </div>
       </div>
 

@@ -982,6 +982,8 @@ body.light-mode .hist-entry {
           <div class="cbox-hdr">
             <div class="cbox-title">총 자산 추이 <span class="period" id="cperiod1"></span></div>
             <div class="chart-type-btns">
+              <button class="ct-btn on" id="totalRangeMonth" onclick="setTotalRange('month',this)">이번 달</button>
+              <button class="ct-btn" id="totalRangeAll" onclick="setTotalRange('all',this)">전체 기록</button>
               <button class="ct-btn on" onclick="setChartType('total','line',this)">선 도표</button>
               <button class="ct-btn" onclick="setChartType('total','bar',this)">막대</button>
               <button class="ct-btn all-days-btn" id="allDaysBtn1" onclick="toggleAllDays()">전체 일자</button>
@@ -1120,6 +1122,24 @@ var BROKERS=[
 var MEM = { scriptUrl:'', stockData:{}, stockNames:DNAMES.slice() };
 var selectedDate='', calYear=0, calMonth=0, dashYear=0, dashMonth=0;
 var chartTypes = { total:'line', delta:'bar' };
+var totalRange = 'month'; /* 'month' | 'all' */
+
+function setTotalRange(range, btn){
+  totalRange = range;
+  var bm=document.getElementById('totalRangeMonth'), ba=document.getElementById('totalRangeAll');
+  if(bm) bm.classList.toggle('on', range==='month');
+  if(ba) ba.classList.toggle('on', range==='all');
+  var ent=getMonthEntries();
+  requestAnimationFrame(function(){ drawTotalChart(ent); });
+}
+
+/* 전체 날짜를 정렬된 배열로 반환 */
+function getAllEntries(){
+  var keys=[];
+  for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)) keys.push(k);
+  keys.sort();
+  return keys.map(function(k){ return [k, MEM.stockData[k]]; });
+}
 var dashEntryIdx = -1;
 var _gsQ = [];        // JSONP 요청 큐
 var _gsRunning = false;
@@ -1586,7 +1606,23 @@ function drawKpi(entries){
   var last=entries[idx][1], total=getTotal(last);
   var prev=idx>0?getTotal(entries[idx-1][1]):total;
   var first=getTotal(entries[0][1]);
-  var dDay=total-prev;
+  /* 전일 대비 — 이달 첫 입력일이면 전달 마지막 기록 기준으로 계산 */
+  var dDay;
+  if(idx===0){
+    /* 이달 첫 번째 날: 전달 마지막 입력값을 찾아 비교 */
+    var prevMonthTotal=(function(){
+      var pm=dashMonth-1, py=dashYear;
+      if(pm<0){pm=11;py--;}
+      var pmm=padZ(pm+1), pym=py+'-'+pmm;
+      var pkeys=[];
+      for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(pym)===0) pkeys.push(k);
+      pkeys.sort();
+      return pkeys.length?getTotal(MEM.stockData[pkeys[pkeys.length-1]]):null;
+    })();
+    dDay = prevMonthTotal!==null ? total-prevMonthTotal : 0;
+  } else {
+    dDay = total-prev;
+  }
   var curDs=entries[idx][0];
   var dayP=dailyProfits[curDs]?Number(dailyProfits[curDs]):0;
 
@@ -1941,8 +1977,20 @@ function showDeltaPopup(entries, deltaRev){
     var keys=[];
     for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(ym)===0) keys.push(k);
     keys.sort();
+    /* 전달 마지막 기록 */
+    var prevBase=(function(){
+      var pm=mn-1,py=yr; if(pm<0){pm=11;py--;}
+      var pym2=py+'-'+padZ(pm+1),pk=[];
+      for(var k in MEM.stockData) if(MEM.stockData.hasOwnProperty(k)&&k.indexOf(pym2)===0) pk.push(k);
+      pk.sort(); return pk.length?getTotal(MEM.stockData[pk[pk.length-1]]):null;
+    })();
     var deltas=[];
-    for(var i=1;i<keys.length;i++) deltas.push({date:keys[i],val:getTotal(MEM.stockData[keys[i]])-getTotal(MEM.stockData[keys[i-1]])});
+    for(var i=0;i<keys.length;i++){
+      var curT=getTotal(MEM.stockData[keys[i]]);
+      var prevT= i===0 ? prevBase : getTotal(MEM.stockData[keys[i-1]]);
+      if(prevT===null) continue;
+      deltas.push({date:keys[i],val:curT-prevT});
+    }
     if(!deltas.length) return '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">이 달 기록 없음</div>';
     var html='<div style="display:grid;grid-template-columns:90px 1fr 1fr;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;padding:8px 16px;border-bottom:1px solid var(--border);text-transform:uppercase"><span>날짜</span><span style="text-align:right">전일 대비</span><span style="text-align:right">누적합계</span></div>';
     var fwd=deltas.slice(),run=0,runArr=[];
@@ -2128,8 +2176,54 @@ function getCtx(id){
 function drawTotalChart(entries){
   var r=getCtx('cvTotal'),ctx=r.ctx,w=r.w,h=r.h,type=chartTypes['total'];
 
-  /* 전체 일자 모드 */
-  var chartData; // [{label, value|null}]
+  /* ── 전체 기록 모드 ── */
+  if(totalRange==='all'){
+    var allEnt=getAllEntries();
+    if(allEnt.length<2){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('데이터 2개 이상 필요',w/2,h/2);return;}
+    var tots2=allEnt.map(function(e){return getTotal(e[1]);});
+    /* x축 라벨: 월 경계에서만 YYYY-MM, 아니면 DD */
+    var labs2=allEnt.map(function(e,i){
+      var ds=e[0];
+      if(i===0||ds.slice(0,7)!==allEnt[i-1][0].slice(0,7)) return ds.slice(0,7).replace('-','/');
+      return ds.slice(8);
+    });
+    var mn2=tots2[0],mx2=tots2[0];
+    for(var j2=0;j2<tots2.length;j2++){if(tots2[j2]<mn2)mn2=tots2[j2];if(tots2[j2]>mx2)mx2=tots2[j2];}
+    var pad2=Math.max((mx2-mn2)*0.15,mx2*0.03),mnA2=Math.max(0,mn2-pad2),rng2=mx2-mnA2||1;
+    var pT=16,pB=26,pL=10,pR=10,cw2=w-pL-pR,ch2=h-pT-pB;
+    var n2=tots2.length,step2=Math.max(1,Math.floor(n2/10));
+    if(type==='bar'){
+      var bw2=Math.max(2,cw2/n2-1);
+      for(var k2=0;k2<n2;k2++){
+        var x2=pL+(k2/n2)*cw2+(cw2/n2-bw2)/2;
+        var bh2=Math.max(2,((tots2[k2]-mnA2)/rng2)*ch2);
+        var g2a=ctx.createLinearGradient(0,h-pB-bh2,0,h-pB);
+        g2a.addColorStop(0,'rgba(74,222,128,.85)');g2a.addColorStop(1,'rgba(74,222,128,.22)');
+        ctx.fillStyle=g2a;
+        if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x2,h-pB-bh2,bw2,bh2,[2,2,0,0]);ctx.fill();}else ctx.fillRect(x2,h-pB-bh2,bw2,bh2);
+        if(k2%step2===0||k2===n2-1){ctx.fillStyle='#5a5878';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText(labs2[k2],x2+bw2/2,h-6);}
+      }
+    } else {
+      var xf2=function(i){return pL+(i/(n2-1))*cw2;};
+      var yf2=function(v){return pT+ch2-((v-mnA2)/rng2)*ch2;};
+      var gFill=ctx.createLinearGradient(0,pT,0,pT+ch2);
+      gFill.addColorStop(0,'rgba(74,222,128,.18)');gFill.addColorStop(1,'rgba(74,222,128,0)');
+      ctx.beginPath();ctx.moveTo(xf2(0),yf2(tots2[0]));
+      for(var la=1;la<n2;la++) ctx.lineTo(xf2(la),yf2(tots2[la]));
+      ctx.lineTo(xf2(n2-1),h-pB);ctx.lineTo(xf2(0),h-pB);ctx.closePath();ctx.fillStyle=gFill;ctx.fill();
+      ctx.beginPath();ctx.moveTo(xf2(0),yf2(tots2[0]));
+      for(var lb=1;lb<n2;lb++) ctx.lineTo(xf2(lb),yf2(tots2[lb]));
+      ctx.strokeStyle='#4ade80';ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+      for(var lc=0;lc<n2;lc++){
+        ctx.beginPath();ctx.arc(xf2(lc),yf2(tots2[lc]),2.5,0,Math.PI*2);ctx.fillStyle='#4ade80';ctx.fill();
+        if(lc%step2===0||lc===n2-1){ctx.fillStyle='#5a5878';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText(labs2[lc],xf2(lc),h-6);}
+      }
+    }
+    return;
+  }
+
+  /* ── 이번 달 모드 (기존 로직) ── */
+  var chartData;
   if(showAllDays){
     var fullDays=getFullWeekdayEntries();
     chartData=fullDays.map(function(item){ return {label:item[0].slice(8), value:item[1]?getTotal(item[1]):null}; });
@@ -2138,7 +2232,6 @@ function drawTotalChart(entries){
     chartData=entries.map(function(item){ return {label:item[0].slice(8), value:getTotal(item[1])}; });
   }
 
-  /* 값이 있는 것만 min/max 계산 */
   var tots=chartData.map(function(d){return d.value;}), labs=chartData.map(function(d){return d.label;});
   var validTots=tots.filter(function(v){return v!==null;});
   if(validTots.length<2){ctx.fillStyle='#5a5878';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('데이터 2개 이상 필요',w/2,h/2);return;}
@@ -2153,7 +2246,6 @@ function drawTotalChart(entries){
     for(var k=0;k<n;k++){
       var x=pL+(k/n)*cw+(cw/n-bw)/2;
       if(tots[k]===null){
-        /* 데이터 없는 날: 점선 구분 */
         ctx.strokeStyle='rgba(90,88,120,.3)'; ctx.lineWidth=1; ctx.setLineDash([2,3]);
         ctx.beginPath(); ctx.moveTo(x+bw/2,pT); ctx.lineTo(x+bw/2,h-pB); ctx.stroke();
         ctx.setLineDash([]);
@@ -2169,7 +2261,6 @@ function drawTotalChart(entries){
   } else {
     var xf=function(i){return pL+(i/(n-1||1))*cw;};
     var yf=function(v){return pT+ch-((v-mnA)/rng)*ch;};
-    /* 그라디언트 fill: 유효값만 연결 */
     var firstValid=null;
     for(var fi=0;fi<n;fi++){if(tots[fi]!==null){firstValid=fi;break;}}
     if(firstValid!==null){
@@ -2181,17 +2272,14 @@ function drawTotalChart(entries){
         if(tots[l]===null) continue;
         if(!started){ctx.moveTo(xf(l),yf(tots[l]));started=true;}else ctx.lineTo(xf(l),yf(tots[l]));
       }
-      /* 닫기 */
       var lastValid=null; for(var lv=n-1;lv>=0;lv--){if(tots[lv]!==null){lastValid=lv;break;}}
       ctx.lineTo(xf(lastValid),h-pB);ctx.lineTo(xf(firstValid),h-pB);ctx.closePath();ctx.fillStyle=g2;ctx.fill();
-      /* 선 */
       ctx.beginPath();started=false;
       for(var m=0;m<n;m++){
         if(tots[m]===null){started=false;continue;}
         if(!started){ctx.moveTo(xf(m),yf(tots[m]));started=true;}else ctx.lineTo(xf(m),yf(tots[m]));
       }
       ctx.strokeStyle='#4ade80';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
-      /* 점 */
       for(var nn=0;nn<n;nn++){
         if(tots[nn]!==null){ctx.beginPath();ctx.arc(xf(nn),yf(tots[nn]),3.5,0,Math.PI*2);ctx.fillStyle='#4ade80';ctx.fill();}
         if(n===1||(nn%step===0||nn===n-1)){ctx.fillStyle='#5a5878';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(labs[nn],xf(nn),h-8);}

@@ -715,6 +715,40 @@ tbody tr:last-child td { border-bottom:none; }
   .bpill { padding:7px 9px; }
   .bpill-val { font-size:13px; }
 }
+/* ── 일간 수익 달력 ── */
+.profit-cal-wrap {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:10px; margin-bottom:8px;
+}
+.profit-cal-nav {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+}
+.profit-cal-nav button {
+  background:var(--surface3); border:1px solid var(--border);
+  color:var(--text2); width:26px; height:26px; border-radius:6px;
+  font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all .12s;
+}
+.profit-cal-nav button:hover { background:var(--surface); color:var(--text); }
+.profit-cal-month { font-size:12px; font-weight:700; color:var(--text); }
+.profit-cal-grid {
+  display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center;
+}
+.pcal-dow { font-size:9px; color:var(--text3); padding:2px 0; font-weight:700; }
+.pcal-day {
+  font-size:11px; padding:5px 2px; border-radius:5px;
+  cursor:pointer; color:var(--text2); text-align:center; transition:all .1s;
+}
+.pcal-day:hover { background:var(--surface3); color:var(--text); }
+.pcal-day.other { color:var(--text3); opacity:.4; pointer-events:none; }
+.pcal-day.has-profit {
+  background:rgba(63,185,80,.12); color:var(--up); font-weight:700;
+}
+.pcal-day.pselected {
+  background:var(--accent) !important; color:#fff !important; font-weight:700;
+  box-shadow:0 2px 6px rgba(88,166,255,.35);
+}
+.pcal-day.ptoday { outline:1.5px solid var(--accent); outline-offset:-1.5px; }
 </style>
 </head>
 <body>
@@ -819,28 +853,6 @@ tbody tr:last-child td { border-bottom:none; }
 
     <!-- 입력 -->
     <div class="sec-hdr">계좌별 평가금액 (원)</div>
-
-    <!-- 일괄 붙여넣기 -->
-    <div class="bulk-wrap">
-      <div class="bulk-tabs">
-        <button class="bulk-tab ki on" onclick="switchBulkTab('ki',this)">🟠 키움</button>
-        <button class="bulk-tab to" onclick="switchBulkTab('to',this)">🔵 토스</button>
-        <button class="bulk-tab ko" onclick="switchBulkTab('ko',this)">🟢 한국투자</button>
-      </div>
-      <div class="bulk-panel on" id="bp-ki">
-        <div class="bulk-broker-label ki">키움증권 — 계좌명 : 금액</div>
-        <textarea class="bulk-textarea" id="bulk-ki" rows="6" placeholder="거래 1 : 12,345,678&#10;거래 2 : 8,900,000&#10;20% 1 : 45,000,000&#10;공짜 1 : 3,200,000"></textarea>
-      </div>
-      <div class="bulk-panel" id="bp-to">
-        <div class="bulk-broker-label to">토스증권 — 계좌명 : 금액</div>
-        <textarea class="bulk-textarea" id="bulk-to" rows="3" placeholder="토스 : 15,000,000"></textarea>
-      </div>
-      <div class="bulk-panel" id="bp-ko">
-        <div class="bulk-broker-label ko">한국투자증권 — 계좌명 : 금액</div>
-        <textarea class="bulk-textarea" id="bulk-ko" rows="4" placeholder="거래 : 20,000,000&#10;20% : 10,000,000&#10;공짜 : 5,000,000"></textarea>
-      </div>
-      <div class="bulk-result" id="bulkResult"></div>
-    </div>
 
     <div id="sgrid"></div>
 

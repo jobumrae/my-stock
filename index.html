@@ -788,6 +788,15 @@ tbody tr:last-child td { border-bottom:none; }
       <button class="mbtn sec" onclick="closeSettings()">닫기</button>
     </div>
     <div class="merr" id="merr"></div>
+    <div id="migrateRow" style="display:none;margin-top:14px;padding:12px;border-radius:10px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.25)">
+      <div style="font-size:12px;font-weight:700;color:var(--ki);margin-bottom:4px">⚠️ 이전 형식 데이터 발견</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px">
+        '거래3'·'20% 3' 항목 추가 전 형식으로 저장된 기록이 <span id="migrateCount">0</span>건 있습니다.
+        화면에는 이미 올바르게 표시되지만, Google Sheets 원본은 아직 예전 형식입니다.
+        아래 버튼을 누르면 새 형식으로 Sheets에 다시 저장합니다.
+      </div>
+      <button class="mbtn pri" style="width:100%" onclick="migrateAndResave()">🔄 새 형식으로 Sheets에 재저장</button>
+    </div>
     <div style="height:1px;background:var(--border);margin:18px 0"></div>
     <!-- 컬러 테마 -->
     <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">컬러 테마</div>
@@ -1129,6 +1138,44 @@ var BROKERS=[
 ];
 
 /* ═══════════════════════════════════
+   구(N=14) → 신(N=16) 데이터 마이그레이션
+   2026-08 '거래3'(idx2), '20% 3'(idx5) 신규 추가로
+   그 뒤 항목들이 밀리면서 발생한 구조 변경 대응.
+   구 인덱스 i의 값이 신 인덱스 OLD14_TO_NEW16[i]로 이동.
+   신규 두 자리(2,5)는 구 데이터에 없으므로 매핑 대상에서 제외.
+═══════════════════════════════════ */
+var OLD14_TO_NEW16=[0,1,3,4,6,7,8,9,10,11,12,13,14,15];
+function isOldFormatValues(values){
+  /* 정확히 14칸이면 구 형식으로 간주. 16칸이면 이미 신 형식. 그 외 길이는 판단 불가 → 그대로 둠 */
+  return Array.isArray(values)&&values.length===14;
+}
+function migrateArrayOldToNew(arr, fillVal){
+  /* arr: 길이 14의 values 또는 names 배열. 신 길이 16으로 재배치. */
+  var out=new Array(N).fill(fillVal);
+  for(var oi=0;oi<OLD14_TO_NEW16.length;oi++){
+    var ni=OLD14_TO_NEW16[oi];
+    out[ni]=(oi<arr.length)?arr[oi]:fillVal;
+  }
+  return out;
+}
+function migrateEntryOldToNew(entry){
+  /* entry = {values, names, yesueum, ...} 형태의 날짜별 기록 하나 */
+  if(!entry||!isOldFormatValues(entry.values)) return entry;
+  var migrated={};
+  for(var k in entry) if(entry.hasOwnProperty(k)) migrated[k]=entry[k];
+  migrated.values=migrateArrayOldToNew(entry.values, '');
+  if(Array.isArray(entry.names)&&entry.names.length===14){
+    migrated.names=migrateArrayOldToNew(entry.names, '');
+    /* 신규 두 자리는 빈 이름 대신 현재 항목명을 채워 화면에 정상 표시 */
+    if(!migrated.names[2]) migrated.names[2]=DNAMES[2];
+    if(!migrated.names[5]) migrated.names[5]=DNAMES[5];
+  }
+  /* 시트 원본은 아직 구형식이므로, 재저장(migrateAndResave) 대상임을 표시 */
+  migrated.__migratedFromOld=true;
+  return migrated;
+}
+
+/* ═══════════════════════════════════
    상태
 ═══════════════════════════════════ */
 var MEM = { scriptUrl:'', stockData:{}, stockNames:DNAMES.slice() };
@@ -1217,6 +1264,13 @@ function openSettings(){
     var btn=document.getElementById('ctb-'+t);
     if(btn) btn.classList.toggle('active', t===currentColorTheme);
   });
+  /* 구형식 데이터가 남아있으면 재저장 버튼 노출 */
+  var mrow=document.getElementById('migrateRow'), mcnt=countOldFormatEntries();
+  if(mrow){
+    mrow.style.display=mcnt>0?'block':'none';
+    var mlbl=document.getElementById('migrateCount');
+    if(mlbl) mlbl.textContent=mcnt;
+  }
 }
 function closeSettings(){ document.getElementById('overlay').classList.remove('on'); }
 function connectUrl(){
@@ -1289,11 +1343,15 @@ function pullFromSheets(){
   setDot('ing','동기화 중...');
   doJsonp('getAll', function(result){
     if(result && result.data !== undefined){
-      var clean={}, k;
+      var clean={}, k, migratedCount=0;
       for(k in result.data){
         if(!result.data.hasOwnProperty(k)) continue;
         var nd=normDate(k);
-        if(nd) clean[nd]=result.data[k];
+        if(!nd) continue;
+        var rawEntry=result.data[k];
+        var wasOld=isOldFormatValues(rawEntry&&rawEntry.values);
+        clean[nd]=migrateEntryOldToNew(rawEntry);
+        if(wasOld) migratedCount++;
       }
       MEM.stockData=clean;
       if(result.meta){
@@ -1331,7 +1389,7 @@ function pullFromSheets(){
         }catch(e){ console.warn('depositLogs parse error',e); }
       }
       var cnt=Object.keys(clean).length;
-      setDot('ok', cnt+'개 기록');
+      setDot('ok', cnt+'개 기록'+(migratedCount>0?' (구형식 '+migratedCount+'건 자동 변환)':''));
     } else {
       setDot('err','연결 실패');
     }
@@ -1366,6 +1424,67 @@ function saveEntry(){
       setTimeout(function(){ msg.textContent=''; }, 3000);
     }, 4000);
   });
+}
+
+/* ═══════════════════════════════════
+   구형식 데이터 → Sheets에 영구 재저장
+   pullFromSheets가 메모리상에서는 이미 신형식(N=16)으로
+   변환해 보여주지만, 시트 원본은 그대로 구형식(N=14)으로
+   남아있다. 이 함수는 변환된 값을 실제로 다시 저장해
+   시트 자체를 신형식으로 갱신한다. 순차 저장(한 번에 하나씩)
+   으로 Apps Script 과부하를 피한다.
+═══════════════════════════════════ */
+var _migrating = false;
+function countOldFormatEntries(){
+  var n=0;
+  for(var k in MEM.stockData){
+    if(!MEM.stockData.hasOwnProperty(k)) continue;
+    /* pullFromSheets가 이미 변환을 마쳤으므로 여기선 항상 N=16이지만,
+       변환 표시를 위해 원본 pull 시점에 기록해둔 플래그를 사용 */
+    if(MEM.stockData[k].__migratedFromOld) n++;
+  }
+  return n;
+}
+function migrateAndResave(){
+  if(_migrating) return;
+  var dates=[];
+  for(var k in MEM.stockData){
+    if(MEM.stockData.hasOwnProperty(k) && MEM.stockData[k].__migratedFromOld) dates.push(k);
+  }
+  if(!dates.length){ alert('재저장이 필요한 구형식 데이터가 없습니다.'); return; }
+  if(!confirm(dates.length+'건의 기록을 새 순서(거래3·20%3 추가분 포함)로 Google Sheets에 다시 저장합니다.\n시간이 걸릴 수 있으며, 완료 전에는 창을 닫지 마세요.\n계속할까요?')) return;
+
+  dates.sort();
+  _migrating=true;
+  var total=dates.length, done=0;
+  showLoader('구형식 데이터 변환 중... (0/'+total+')');
+
+  function saveNext(){
+    if(done>=total){
+      _migrating=false;
+      showLoader('변환 완료 — 최종 확인 중...');
+      setTimeout(function(){
+        pullFromSheets();
+        hideLoader();
+        alert(total+'건의 데이터를 새 형식으로 재저장했습니다.');
+      }, 4000);
+      return;
+    }
+    var ds=dates[done];
+    var entry=MEM.stockData[ds];
+    var payload={
+      action:'save', date:ds,
+      values:entry.values.slice(),
+      names:(Array.isArray(entry.names)?entry.names:MEM.stockNames).slice(),
+      yesueum:entry.yesueum
+    };
+    doPost(payload, function(ok){
+      done++;
+      showLoader('구형식 데이터 변환 중... ('+done+'/'+total+')'+(ok?'':' — 일부 실패, 계속 진행'));
+      setTimeout(saveNext, 600); /* Apps Script 연속 호출 간 최소 간격 */
+    });
+  }
+  saveNext();
 }
 
 /* 삭제: POST 후 3초 기다렸다가 pull */

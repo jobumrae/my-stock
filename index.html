@@ -32,6 +32,8 @@
   --accent2: #58a6ff;
   --up:   #3fb950;
   --down: #f85149;
+  --amt-up:   #f85149;
+  --amt-down: #58a6ff;
   --ki: #d29922;
   --to: #58a6ff;
   --ko: #3fb950;
@@ -55,6 +57,7 @@ body.theme-navy {
   --text:#e8edf8;--text2:#9baad0;--text3:#5a6a90;
   --accent:#f0c060;--accent2:#f0c060;--ko:#60d0a0;
   --up:#3fb950;--down:#f85149;
+  --amt-up:#f85149;--amt-down:#5b9bf8;
   --ki:#f0c060;--to:#5b9bf8;--to2:#2D61E5;
 }
 body.theme-forest {
@@ -63,6 +66,7 @@ body.theme-forest {
   --text:#d8f4e8;--text2:#80b8a0;--text3:#4a7860;
   --accent:#34d399;--accent2:#34d399;--ko:#34d399;
   --up:#3fb950;--down:#f85149;
+  --amt-up:#f85149;--amt-down:#58a6ff;
 }
 body.theme-crimson {
   --bg:#110808;--bg2:#1c0f0f;--surface:#261414;--surface2:#321a1a;--surface3:#3e2020;
@@ -70,6 +74,7 @@ body.theme-crimson {
   --text:#f8e8e0;--text2:#c08878;--text3:#805848;
   --accent:#f59e0b;--accent2:#f59e0b;--ko:#f59e0b;
   --up:#3fb950;--down:#f85149;
+  --amt-up:#f85149;--amt-down:#58a6ff;
 }
 body.theme-arctic {
   --bg:#080e14;--bg2:#0e1820;--surface:#12202e;--surface2:#192a3a;--surface3:#203448;
@@ -77,6 +82,7 @@ body.theme-arctic {
   --text:#ddf0fc;--text2:#7ab0d0;--text3:#4a7090;
   --accent:#38bdf8;--accent2:#38bdf8;--ko:#38bdf8;
   --up:#3fb950;--down:#f85149;
+  --amt-up:#f85149;--amt-down:#38bdf8;
 }
 body.theme-sunset {
   --bg:#0d0814;--bg2:#140e20;--surface:#1c1230;--surface2:#261840;--surface3:#301f50;
@@ -84,6 +90,7 @@ body.theme-sunset {
   --text:#f0e8ff;--text2:#a890d8;--text3:#7060a0;
   --accent:#c084fc;--accent2:#c084fc;--ko:#c084fc;
   --up:#3fb950;--down:#f85149;
+  --amt-up:#f85149;--amt-down:#58a6ff;
 }
 
 /* ── 라이트 모드 ── */
@@ -93,6 +100,7 @@ body.light-mode {
   --text:#0d1117;--text2:#586070;--text3:#8090a8;
   --accent:#0969da;--accent2:#0969da;
   --up:#1a7f37;--down:#cf222e;
+  --amt-up:#cf222e;--amt-down:#0969da;
   --ki:#9a6700;--to:#0969da;--ko:#1a7f37;--ye:#8250df;
   --shadow:0 1px 3px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.07);
   --glow-ki:rgba(154,103,0,.08);--glow-to:rgba(9,105,218,.08);
@@ -394,8 +402,8 @@ body {
   font-family:'DM Mono',monospace; font-size:13px; font-weight:600;
   margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.up   { color:var(--up);   }
-.down { color:var(--down); }
+.up   { color:var(--amt-up);   }
+.down { color:var(--amt-down); }
 .flat { color:var(--text2);}
 
 /* ══════════════════════════════════════
@@ -649,7 +657,7 @@ tbody tr:last-child td { border-bottom:none; }
 ══════════════════════════════════════ */
 @media (max-width:768px) {
   body { overflow:auto; display:block; }
-  .topbar { height:auto; padding:calc(env(safe-area-inset-top,0px)*.8+7px) 14px 8px; min-height:44px; }
+  .topbar { height:auto; padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 8px; min-height:44px; }
   .brand h1 { font-size:13px; }
   .layout { display:block; overflow:visible; }
   .left { max-height:none; overflow-y:visible; border-right:none; background:var(--bg); display:none; padding-bottom:80px; }
@@ -1111,13 +1119,13 @@ window.addEventListener('resize', function(){
     initResponsive();
   }
 });
-var N=14;
-var DNAMES=['거래 1','거래 2','20% 1','20% 2','문자','공짜 1','공짜 2','공짜 3','공짜 4','공짜 5','토스','거래','20%','공짜'];
-var COLORS=['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fed7aa','#fdba74','#fb923c','#f97316','#fb8c1a','#fca040','#5B9BF8','#34d399','#6ee7b7','#a7f3d0'];
+var N=16;
+var DNAMES=['거래 1','거래 2','거래 3','20% 1','20% 2','20% 3','문자','공짜 1','공짜 2','공짜 3','공짜 4','공짜 5','토스','거래','20%','공짜'];
+var COLORS=['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fed7aa','#fdba74','#fb923c','#f97316','#fb8c1a','#fca040','#fcb900','#fda93a','#5B9BF8','#34d399','#6ee7b7','#a7f3d0'];
 var BROKERS=[
-  {name:'키움증권',cls:'ki',nb:'nb-ki',hcls:'hbki',indices:[0,1,2,3,4,5,6,7,8,9]},
-  {name:'토스증권',cls:'to',nb:'nb-to',hcls:'hbto',indices:[10]},
-  {name:'한국투자증권',cls:'ko',nb:'nb-ko',hcls:'hbko',indices:[11,12,13]}
+  {name:'키움증권',cls:'ki',nb:'nb-ki',hcls:'hbki',indices:[0,1,2,3,4,5,6,7,8,9,10,11]},
+  {name:'토스증권',cls:'to',nb:'nb-to',hcls:'hbto',indices:[12]},
+  {name:'한국투자증권',cls:'ko',nb:'nb-ko',hcls:'hbko',indices:[13,14,15]}
 ];
 
 /* ═══════════════════════════════════
